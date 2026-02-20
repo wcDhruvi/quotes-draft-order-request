@@ -1,0 +1,65 @@
+ul.boringListNav{width: 100%;display: flex;flex-wrap: wrap;flex-direction: column; margin: 0; padding: 0;height: 100%;    background: #f6f6f7;}
+ul.boringListNav li{font-size: 16px;padding: 16px;line-height: 20px;display: flex; flex-wrap: wrap;border-top: 1px solid #edeeef;align-items: center;position: relative; cursor: pointer;}
+ul.boringListNav li.is-active-nav{background-color:#fff;}
+ul.boringListNav li span{width: 18px;height: 18px;background: #5c5f6278;display: flex;justify-content: center;align-items: center;flex-wrap: wrap;color: #fff;border-radius: 50%;font-size: 10px;font-weight: bold;line-height: 0;margin-right: 10px;}
+ul.boringListNav li.is-active-nav span{background: #303030; color: #FFFFFF}
+ul.boringListNav li.is-active-nav:before{content: '';width: 3px;height: 100%; display: block; background-color: #303030;position: absolute;left: 0;top:0}
+.boringListContain{padding: 20px 30px;border-top: 1px solid #edeeef;min-height: 200px;}
+.boringListContain .Polaris-Heading{font-size: 1.6rem; font-weight: 600;line-height: 2.4rem;margin-bottom: 0.8rem;}
+.boringListContain p{font-size: 1em;font-weight: 400;}
+.boringListContain .Polaris-Button{margin: 3.2rem 0;}
+.boringListContain .code-setup-btn .Polaris-Button{margin: 0;}
+.app_support_box {width: 100%;display: inline-block;text-align: center;line-height: 0;padding: 12px 0 6px 0;}
+.app_support_box .asb_icon {width: 100%;display: inline-block;margin-bottom: 20px;}
+.app_support_box .asb_icon svg {width: 80px;}
+.app_support_box .asb_contain {width: 100%;display: inline-block;}
+.app_support_box .asb_contain h2 {font-size: 24px;line-height: normal;font-weight: 600;}
+.app_support_box .asb_contain .asb_text {width: 100%;display: inline-block;padding-top: 6px;padding-bottom: 20px;}
+.app_support_box .asb_contain .asb_text p {line-height: normal;font-size: 16px;}
+.app_support_box.style2 .asb_icon {margin-bottom: 16px;}
+.app_support_box.style2 .asb_icon svg {width: 60px;}
+.app_support_box.style2 .asb_contain h2 {font-size: 18px;}
+.app_support_box.style2 .asb_contain .asb_text {padding-top: 4px;padding-bottom: 16px;}
+.app_support_box.style2 .asb_contain .asb_text p {font-size: 14px;}
+.setting-icon {width: 40px;background: #f4f6f8;padding: 10px 0;text-align: center;line-height: 0;border: 0;border-radius: 5px;}
+.setting-icon svg {fill: #919eab;}
+.pointer{cursor: pointer}
+.resource-item-title{width: 400px}
+.and-condition{position: relative;overflow: hidden;text-align: center; margin: 15px 0}
+.and-condition span{font-size: 18px;}
+.and-condition span::after,.and-condition span::before{content: ""; width: 260px; height: 1px; position: absolute; top: 10px; background: #c9cccf;}
+.and-condition span::after{left: 0}
+.and-condition span::before{right: 0}
+figure.theme_screenshot, figure.theme_screenshot a, figure.theme_screenshot img {width: 100%;display: inline-block;}
+figure.theme_screenshot {margin: 0;height: 100%;border: 1px solid #f1f1f1;border-radius: 5px;padding: 0;line-height: 0;position: relative;}
+figure.theme_screenshot img {cursor: pointer; border-radius: 5px;position: absolute;left: 0;top: 0;object-fit: cover;object-position: left;height: 100%;}
+.copy-code {width: 100%;display: inline-block;position: relative;}
+.copy-code .cc-input-text {width: 100%;display: inline-block;font-size: 14px;color: #000;background-color: #fff;line-height: 20px;border: 1px solid #e6e6e6;margin: 0;padding: 10px 45px 10px 12px;border-radius: 6px;outline: none;-webkit-appearance: none;appearance: none;}
+.copy-code button.cc-copy {width: 40px;height: 40px;line-height: 0;display: flex;flex-wrap: wrap;align-items: center;justify-content: center;position: absolute;right: 0;top: 50%;margin-top: -20px;background: transparent;border: 0;cursor: pointer;}
+.copy-code button.cc-copy svg {width: 16px;height: 16px;fill: #000;}
+.copy-code button.cc-copy svg.cc-true-icon {display: none;fill: #000;}
+iframe.clickup-embed {height: 100%;width: 100%;border: 0;box-shadow: none;}
+.main_spinner{height: 100vh;display: flex;justify-content: center;align-items: center;}
+.Polaris-InlineStack .Polaris-ActionList__Prefix .Polaris-Icon svg.Polaris-Icon__Svg {fill: #0c5132;}
+.main-content-wrapp.mcw-support-page {height: 100%;}
+.main-content-wrapp.mcw-support-page .main-content-area {height: 100%;overflow: auto;display: flex;flex-wrap: wrap;align-items: self-end;align-content: space-between;}
+.footer-help-container {position: fixed;bottom: 0;left: 50%;transform: translateX(-50%);}
+.main-content-wrapp{display: flex; flex-wrap: wrap; flex-direction: column; min-height: 100%;}
+.theme_extension{border: 1px solid #c9cccf;border-radius: 5px;padding: 10px;width: 100%;height: 186px;object-fit: inherit}
+.center-support-box {display: flex;justify-content: center;align-items: flex-end;height: 100%;}
+.color_picker span {background: #fff;position: absolute;right: 5px;bottom: 6px;top: 6px;display: flex;flex-wrap: wrap;align-items: center;left: 45px;padding-left: 6px;cursor: pointer;}
+.color_picker input[type="color"] {width: 40px;padding: 3px 7px;background: #fff;border: none;border-radius: 4px 0 0 4px;position: absolute;top: 0;left: 0;bottom: 0;display: inline-block;height: auto;}
+.color_picker input:focus {outline: none;}
+.color_picker {width: 100%;display: inline-block;position: relative;border: 1px solid #c9cccf;border-radius: 8px;height: 32px;background-color: #fff;}
+.color_picker_color {width: 35px;height: 31px;border-top-left-radius: 4px;border-bottom-left-radius: 4px;}
+.color_picker_color {width: 38px;height: 30px;border-top-left-radius: 7px;border-bottom-left-radius: 7px;border-right: 1px solid #c9cccf;}
+.sketch-picker {position: absolute;z-index: 999;top: 36px;right: 0;}
+.color_picker.top .sketch-picker {top: inherit;bottom: 36px;}
+.color_picker.right .sketch-picker {left: 0;}.color_picker.left .sketch-picker {right: 0;}
+.color_picker.middle .sketch-picker {top: inherit;bottom: 36px;}
+.color_picker.left .sketch-picker {right: 0;}
+.color_picker.btn_text_color .sketch-picker {top: -32px;bottom: inherit;left: 43px;}
+.color_picker.btn_bg_color .sketch-picker {top: -29px;right: 189px;}
+.color_picker.btn_border_color .sketch-picker {top: -108px;left: 43px;}
+.color_picker.btn_hover_color .sketch-picker {top: -107px;right: 191px;}
+.color_picker.btn_hover_border_color .sketch-picker {top: inherit;bottom: -21px;}

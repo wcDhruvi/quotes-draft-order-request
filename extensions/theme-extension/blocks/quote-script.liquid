@@ -1,0 +1,29 @@
+<div id="uncap_store_currency" style="display:none !important" data-currency="{{ shop.money_format | strip_html }}"></div>
+
+<script src="https://quotes-draft-order-request.gadget.app/api/client/web.min.js"></script>
+<script>
+  window.shopId = "{{ shop.id }}";
+  window.uqCustomer = {
+  email: "{{ customer.email }}",
+  first_name: "{{ customer.first_name }}",
+  last_name: "{{ customer.last_name }}",
+  phone: "{{customer.addresses[0].phone}}",
+  address1: "{{customer.addresses[0].address1}}",
+  address2: "{{customer.addresses[0].address2}}",
+  country: "{{customer.addresses[0].country_code}}",
+  province: "{{customer.addresses[0].province_code}}",
+  city: "{{customer.addresses[0].city}}",
+  zip: "{{customer.addresses[0].zip}}",
+}
+ // Use the globally initialized API client from the quote-script.liquid file
+
+</script>
+<script src="{{ 'uncap-quotes.js' | asset_url }}" type="text/javascript" ></script>
+{{ 'uncap-styles.css' | asset_url | stylesheet_tag }}
+{% schema %}
+  {
+    "name": "Uncap Quote",
+    "target": "body",
+    "settings": []
+  }
+{% endschema %}
