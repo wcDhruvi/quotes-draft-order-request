@@ -4,16 +4,17 @@ import type { GadgetModel } from "gadget-server";
 // For more information on how to update this file http://docs.gadget.dev
 
 export const schema: GadgetModel = {
-  type: "gadget/model-schema/v1",
+  type: "gadget/model-schema/v2",
   storageKey: "DataModel-Shopify-AppInstallation",
   fields: {},
+  searchIndex: false,
   shopify: {
-    fields: [
-      "accessScopes",
-      "app",
-      "launchUrl",
-      "shop",
-      "uninstallUrl",
-    ],
+    fields: {
+      accessScopes: { filterIndex: false, searchIndex: false },
+      app: { searchIndex: false },
+      launchUrl: { filterIndex: false, searchIndex: false },
+      shop: { searchIndex: false },
+      uninstallUrl: { filterIndex: false, searchIndex: false },
+    },
   },
 };

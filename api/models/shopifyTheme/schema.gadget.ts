@@ -4,19 +4,29 @@ import type { GadgetModel } from "gadget-server";
 // For more information on how to update this file http://docs.gadget.dev
 
 export const schema: GadgetModel = {
-  type: "gadget/model-schema/v1",
+  type: "gadget/model-schema/v2",
   storageKey: "DataModel-Shopify-Theme",
-  fields: {},
+  fields: {
+    roleBackup: {
+      type: "string",
+      storageKey:
+        "ModelField-DataModel-Shopify-Theme-role::FieldStorageEpoch-DataModel-Shopify-Theme-role-initial",
+      searchIndex: false,
+    },
+  },
+  searchIndex: false,
   shopify: {
-    fields: [
-      "name",
-      "previewable",
-      "processing",
-      "role",
-      "shop",
-      "shopifyCreatedAt",
-      "shopifyUpdatedAt",
-      "themeStoreId",
-    ],
+    fields: {
+      name: { filterIndex: false, searchIndex: false },
+      prefix: { filterIndex: false, searchIndex: false },
+      previewable: { filterIndex: false, searchIndex: false },
+      processing: { filterIndex: false, searchIndex: false },
+      processingFailed: { filterIndex: false, searchIndex: false },
+      role: { searchIndex: false },
+      shop: { searchIndex: false },
+      shopifyCreatedAt: { filterIndex: false, searchIndex: false },
+      shopifyUpdatedAt: { filterIndex: false, searchIndex: false },
+      themeStoreId: { filterIndex: false, searchIndex: false },
+    },
   },
 };

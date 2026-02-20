@@ -532,35 +532,79 @@ const qcGetQuotesDetails = async () => {
   }
 };
 
+// const ucRenderAddToQuotesButton = (setting) => {
+//   ucAddToQuotesCssEvent(setting);
+//   let ucAddToQuotesBtn = "";
+//   ucAddToQuotesBtn +=
+//     '<button class="uc-add-to-quotes-btn" type="button">' +
+//     setting?.add_to_cart_btn_text +
+//     "</button>";
+//   if (document.querySelector(".uc-add-to-quotes")) {
+//     document.querySelector(".uc-add-to-quotes").innerHTML = ucAddToQuotesBtn;
+//     document.querySelector(".uc-add-to-quotes-btn").addEventListener("click", function (e) {
+
+//       document.querySelector(".product-form__submit")?.click();
+//     });
+//     if (setting.is_add_to_cart_quotes == "1") {
+//       document.querySelectorAll('form[action="/cart/add"]')
+//         .forEach(function (this_loop) {
+//           if (this_loop.querySelector('button[type="submit"]') || this_loop.querySelector(".product-form__submit")) {
+//             let add_to_cart_btn = this_loop.querySelector('button[type="submit"]') ? this_loop.querySelector('button[type="submit"]') : "";
+//             if (add_to_cart_btn || add_to_cart_btn.innerText == "add to cart") {
+//               add_to_cart_btn.style.display = "none";
+//             }
+//             this_loop.querySelector(".product-form__submit")
+//               ? (this_loop.querySelector(".product-form__submit").style.display =
+//                 "none")
+//               : "";
+//           }
+//         });
+//     }
+//   }
+// };
+
+
 const ucRenderAddToQuotesButton = (setting) => {
   ucAddToQuotesCssEvent(setting);
-  let ucAddToQuotesBtn = "";
-  ucAddToQuotesBtn +=
-    '<button class="uc-add-to-quotes-btn" type="button">' +
-    setting?.add_to_cart_btn_text +
-    "</button>";
-  if (document.querySelector(".uc-add-to-quotes")) {
-    document.querySelector(".uc-add-to-quotes").innerHTML = ucAddToQuotesBtn;
-    document.querySelector(".uc-add-to-quotes-btn").addEventListener("click", function (e) {
-      document.querySelector(".product-form__submit").click();
-    });
-    if (setting.is_add_to_cart_quotes == "1") {
-      document.querySelectorAll('form[action="/cart/add"]')
-        .forEach(function (this_loop) {
-          if (this_loop.querySelector('button[type="submit"]') || this_loop.querySelector(".product-form__submit")) {
-            let add_to_cart_btn = this_loop.querySelector('button[type="submit"]') ? this_loop.querySelector('button[type="submit"]') : "";
-            if (add_to_cart_btn || add_to_cart_btn.innerText == "add to cart") {
-              add_to_cart_btn.style.display = "none";
-            }
-            this_loop.querySelector(".product-form__submit")
-              ? (this_loop.querySelector(".product-form__submit").style.display =
-                "none")
-              : "";
-          }
-        });
-    }
 
-  }
+  let ucAddToQuotesBtn = `
+    <button class="uc-add-to-quotes-btn" type="button">
+      ${setting?.add_to_cart_btn_text || "Add to Quote"}
+    </button>
+  `;
+
+  const quoteContainer = document.querySelector(".uc-add-to-quotes");
+  if (!quoteContainer) return;
+
+  // Inject Quote Button
+  quoteContainer.innerHTML = ucAddToQuotesBtn;
+
+  let detectedAddToCartBtn = null;
+
+  // Find actual Add to Cart button inside cart forms
+  document.querySelectorAll('form[action="/cart/add"]').forEach((form) => {
+    let btn = form.querySelector('button[type="submit"]') || form.querySelector(".product-form__submit");
+
+    if (btn) {
+      detectedAddToCartBtn = btn;
+
+      // Hide original Add to Cart button if setting enabled
+      if (setting?.is_add_to_cart_quotes == "1") {
+        btn.style.display = "none";
+      }
+    }
+  });
+
+  // Add click event to Quote button
+  const quoteBtn = document.querySelector(".uc-add-to-quotes-btn");
+
+  quoteBtn?.addEventListener("click", function () {
+    if (detectedAddToCartBtn) {
+      detectedAddToCartBtn.click();
+    } else {
+      console.warn("Add to Cart button not found");
+    }
+  });
 };
 
 const ucAddToCartGetQuotesDetails = async () => {

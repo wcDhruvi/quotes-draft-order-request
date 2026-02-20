@@ -15,7 +15,7 @@ redirect_urls = [
 ]
 
 [webhooks]
-api_version = "2025-01"
+api_version = "2026-01"
 
   [[webhooks.subscriptions]]
   uri = "https://quotes-draft-order-request.gadget.app/api/webhooks/shopify"

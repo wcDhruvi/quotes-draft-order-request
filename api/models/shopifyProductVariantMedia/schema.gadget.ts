@@ -4,8 +4,15 @@ import type { GadgetModel } from "gadget-server";
 // For more information on how to update this file http://docs.gadget.dev
 
 export const schema: GadgetModel = {
-  type: "gadget/model-schema/v1",
+  type: "gadget/model-schema/v2",
   storageKey: "DataModel-Shopify-ProductVariantMedia",
   fields: {},
-  shopify: { fields: ["file", "productVariant", "shop"] },
+  searchIndex: false,
+  shopify: {
+    fields: {
+      file: { searchIndex: false },
+      productVariant: { searchIndex: false },
+      shop: { searchIndex: false },
+    },
+  },
 };

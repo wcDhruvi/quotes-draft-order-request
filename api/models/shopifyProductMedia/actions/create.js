@@ -14,4 +14,11 @@ export const onSuccess = async ({ params, record, logger, api, connections }) =>
 };
 
 /** @type { ActionOptions } */
-export const options = { actionType: "create" };
+export const options = {
+  actionType: "create",
+  triggers: {
+    shopify: {
+      includeFields: ["id", "image", "product"]
+    },
+  },
+};
