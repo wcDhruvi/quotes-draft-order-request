@@ -49,6 +49,7 @@ export default ({ children }) => {
     const res = await api.shopifyShop.findFirst({
       select: {
         currency: true,
+        currencyBackup: true,
         moneyFormat: true,
         myshopifyDomain: true,
         name: true,
@@ -63,7 +64,7 @@ export default ({ children }) => {
         },
       },
     });
-    setShop({ ...res });
+    setShop({ ...res, currency: res.currency || res.currencyBackup });
     setLoading(false);
   };
 
