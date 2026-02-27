@@ -19,12 +19,39 @@ export const options = {
   triggers: {
     shopify: {
       includeFields: [
+        // Required root field
         "id",
+
+        // Basic product fields
         "title",
-        "tags",
         "handle",
-        "media",
-        "variants"
+        "tags",
+        "status",
+        "product_type",
+        "vendor",
+
+        // Images (Shopify uses images, NOT media)
+        "images.id",
+        "images.src",
+        "images.alt",
+        "images.position",
+
+        // Options
+        "options.id",
+        "options.name",
+        "options.position",
+        "options.values",
+
+        // Variants
+        "variants.id",
+        "variants.title",
+        "variants.price",
+        "variants.compare_at_price",
+        "variants.sku",
+        "variants.inventory_quantity",
+        "variants.option1",
+        "variants.option2",
+        "variants.option3"
       ],
     },
   },
