@@ -222,6 +222,9 @@ const onCloseModal = () => {
 };
 
 const renderModal = (customFields, setting) => {
+  
+  document.querySelectorAll(".uc-modal").forEach(el => el.remove());
+
   document.querySelector("body").classList.remove("uc_modal_is_open");
   const appendData = document.querySelector("body");
   document.body.style.overflow = "hidden";
