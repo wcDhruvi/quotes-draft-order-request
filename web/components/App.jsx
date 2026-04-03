@@ -28,6 +28,7 @@ import QuoteOrder from "../routes/QuoteOrder";
 import QuoteOrderDetails from "../routes/QuoteOrderDetails";
 import Installation from "../routes/installation";
 import PricingPlan from "../routes/PricingPlan";
+import NotificationSetting from "../routes/NotificationSetting";
 import { ShopProvider } from "../providers";
 
 function Error404() {
@@ -59,6 +60,7 @@ function App() {
         <Route path="/support" element={<Support />} />
         <Route path="/setting/installation" element={<Installation />} />
         <Route path="/setting/pricing-plan" element={<PricingPlan />} />
+        <Route path="/setting/notification" element={<NotificationSetting />} />
         <Route path="*" element={<Error404 />} />
       </Route>
     )

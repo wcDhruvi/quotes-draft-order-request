@@ -1,11 +1,11 @@
 import React from 'react';
 import { Page, Card, Layout, Grid, BlockStack, Text, Box, Button, Thumbnail } from "@shopify/polaris"
 import { useNavigate } from "react-router";
-import { MetafieldsIcon, ThemeStoreIcon, ButtonIcon, ReceiptDollarIcon, ImportIcon } from '@shopify/polaris-icons';
+import { MetafieldsIcon, ThemeStoreIcon, ButtonIcon, ReceiptDollarIcon, ImportIcon, NotificationIcon } from '@shopify/polaris-icons';
 
 const Setting = () => {
     let navigate = useNavigate()
-  
+
     const settingList = [
         {
             name: 'Form Fields',
@@ -26,6 +26,12 @@ const Setting = () => {
             icon: ThemeStoreIcon
         },
         {
+            name: 'Notification',
+            description: `Specify the notification email for quote requests.`,
+            link: "/setting/notification",
+            icon: NotificationIcon
+        },
+        {
             name: 'Plan and Price',
             description: `Plan and pricing details, along with a comprehensive list of features.`,
             link: "/setting/pricing-plan",
@@ -37,6 +43,7 @@ const Setting = () => {
             link: "/setting/installation",
             icon: ImportIcon
         },
+
     ]
 
     return (

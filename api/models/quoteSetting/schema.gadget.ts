@@ -73,6 +73,12 @@ export const schema: GadgetModel = {
       filterIndex: false,
       searchIndex: false,
     },
+    recipient_email: {
+      type: "string",
+      storageKey: "H9pB78bwHRn",
+      filterIndex: false,
+      searchIndex: false,
+    },
     shop: {
       type: "belongsTo",
       parent: { model: "shopifyShop" },
