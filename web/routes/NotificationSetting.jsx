@@ -234,13 +234,13 @@ const NotificationSetting = () => {
             
             <div>
               <p style="font-size: 14px; margin: 0 0 8px 0; color: #666;">
-                <strong style="color: #333; min-width: 100px; display: inline-block;">${createDetails.merchant_customer_label || "Customer:"}</strong> John Doe
+                <strong style="color: #333; min-width: 100px; display: inline-block;">${replacePlaceholders(createDetails.merchant_customer_label, "Customer:")}</strong> John Doe
               </p>
               <p style="font-size: 14px; margin: 0 0 8px 0; color: #666;">
-                <strong style="color: #333; min-width: 100px; display: inline-block;">${createDetails.merchant_email_label || "Email:"}</strong> john@example.com
+                <strong style="color: #333; min-width: 100px; display: inline-block;">${replacePlaceholders(createDetails.merchant_email_label, "Email:")}</strong> john@example.com
               </p>
               <p style="font-size: 14px; margin: 0; color: #666;">
-                <strong style="color: #333; min-width: 100px; display: inline-block;">${createDetails.merchant_note_label || "Customer Note:"}</strong> Please deliver before Friday.
+                <strong style="color: #333; min-width: 100px; display: inline-block;">${replacePlaceholders(createDetails.merchant_note_label, "Customer Note:")}</strong> Please deliver before Friday.
               </p>
             </div>
 
@@ -249,7 +249,7 @@ const NotificationSetting = () => {
             <div style="margin-top: 45px; text-align: center;">
               <a href="#" 
                  style="background-color: ${createDetails.merchant_button_color || '#008060'}; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                 ${createDetails.merchant_button_text || "View Draft Order"}
+                 ${replacePlaceholders(createDetails.merchant_button_text, "View Draft Order")}
               </a>
             </div>
           </div>

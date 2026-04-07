@@ -316,13 +316,13 @@ export const onSuccess = async ({ params, record, logger, api, connections, emai
       
       <div>
         <p style="font-size: 14px; margin: 0 0 8px 0; color: #666;">
-          <strong style="color: #333; min-width: 100px; display: inline-block;">${quoteSetting?.merchant_customer_label || "Customer:"}</strong> ${record?.customer_detail?.first_name || ""} ${record?.customer_detail?.last_name || ""}
+          <strong style="color: #333; min-width: 100px; display: inline-block;">${replacePlaceholders(quoteSetting?.merchant_customer_label, "Customer:")}</strong> ${record?.customer_detail?.first_name || ""} ${record?.customer_detail?.last_name || ""}
         </p>
         <p style="font-size: 14px; margin: 0 0 8px 0; color: #666;">
-          <strong style="color: #333; min-width: 100px; display: inline-block;">${quoteSetting?.merchant_email_label || "Email:"}</strong> ${record?.customer_detail?.email || "N/A"}
+          <strong style="color: #333; min-width: 100px; display: inline-block;">${replacePlaceholders(quoteSetting?.merchant_email_label, "Email:")}</strong> ${record?.customer_detail?.email || "N/A"}
         </p>
         <p style="font-size: 14px; margin: 0; color: #666;">
-          <strong style="color: #333; min-width: 100px; display: inline-block;">${quoteSetting?.merchant_note_label || "Customer Note:"}</strong> ${record?.customer_detail?.note || "No note provided"}
+          <strong style="color: #333; min-width: 100px; display: inline-block;">${replacePlaceholders(quoteSetting?.merchant_note_label, "Customer Note:")}</strong> ${record?.customer_detail?.note || "No note provided"}
         </p>
       </div>
 
@@ -332,7 +332,7 @@ export const onSuccess = async ({ params, record, logger, api, connections, emai
       ? `<div style="margin-top: 45px; text-align: center;">
             <a href="https://${shop.domain}/admin/draft_orders/${record.draft_order_id}" 
                style="background-color: ${quoteSetting?.merchant_button_color || '#008060'}; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-               ${quoteSetting?.merchant_button_text || "View Draft Order"}
+               ${replacePlaceholders(quoteSetting?.merchant_button_text, "View Draft Order")}
             </a>
           </div>`
       : ""
