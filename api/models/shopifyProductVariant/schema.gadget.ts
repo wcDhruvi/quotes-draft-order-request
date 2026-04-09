@@ -13,6 +13,7 @@ export const schema: GadgetModel = {
       availableForSale: { filterIndex: false, searchIndex: false },
       barcode: { filterIndex: false, searchIndex: false },
       compareAtPrice: { filterIndex: false, searchIndex: false },
+      draftOrderLineItems: true,
       inventoryPolicy: { filterIndex: false, searchIndex: false },
       inventoryQuantity: { filterIndex: false, searchIndex: false },
       media: true,

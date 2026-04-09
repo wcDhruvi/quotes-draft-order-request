@@ -56,6 +56,7 @@ export const schema: GadgetModel = {
       dataSaleOptOut: { filterIndex: false, searchIndex: false },
       defaultAddress: { searchIndex: false },
       displayName: { filterIndex: false, searchIndex: false },
+      draftOrders: true,
       email: { filterIndex: false, searchIndex: false },
       emailMarketingConsent: {
         filterIndex: false,

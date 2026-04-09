@@ -17,7 +17,6 @@ import {
 } from "@shopify/polaris";
 import { useNavigate, useParams } from "react-router";
 import { EmailIcon, PhoneIcon } from "@shopify/polaris-icons";
-import { useAction, useFindFirst } from "@gadgetinc/react";
 import { api } from "../api";
 import { ShopContext } from "../providers";
 
@@ -56,12 +55,19 @@ const QuoteOrderDetails = () => {
 
               tags: true
             },
-            customLineItems: true,
+            draftOrder: {
+              id: true,
+            },
             name: true,
             draft_order_id: true,
             order_detail: true
           },
-          filter: { draft_order_id: { equals: id } },
+          filter: {
+            OR: [
+              { draft_order_id: { equals: id } },
+              { draftOrder: { id: { equals: id } } }
+            ]
+          },
         });
         let obj = { ...response }
         const getCountry = await api.countryAndState.findFirst({
@@ -85,7 +91,6 @@ const QuoteOrderDetails = () => {
     getQuoteDetails();
   }, []);
 
-  console.log('orderDetails', orderDetails)
   const renderData = useCallback(() => {
     let quoteListData = [];
     if (isLoading) {

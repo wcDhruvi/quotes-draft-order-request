@@ -34,14 +34,23 @@ const QuoteOrder = () => {
               searchable={false}
               initialSort={{ createdAt: "Descending" }}
               pageSize={10}
+              select={{
+                id: true,
+                name: true,
+                createdAt: true,
+                draft_order_id: true,
+                draftOrder: { id: true },
+                customer_detail: true,
+                order_detail: true,
+              }}
               columns={[
                 {
                   header: "Draft",
-                   style: { paddingLeft: "12px" },
+                  style: { paddingLeft: "12px" },
                   render: ({ record }) => {
-                    // Displays the name like so: A. Turing
+                    const draftOrderId = record.draftOrder?.id || record.draft_order_id;
                     return (
-                      <Button variant={"plain"} onClick={() => navigate(`/quote-order/${record.draft_order_id}`)}>{record.name}</Button>
+                      <Button variant={"plain"} onClick={() => navigate(`/quote-order/${draftOrderId}`)}>{record.name}</Button>
                     );
                   },
                 },
@@ -81,10 +90,11 @@ const QuoteOrder = () => {
                   header: "Action",
                   style: { maxWidth: "100%", paddingRight: "12px" },
                   render: ({ record }) => {
+                    const draftOrderId = record.draftOrder?.id || record.draft_order_id;
                     return (
-                    <Button variant={"plain"} icon={ViewIcon} onClick={() => window.open(`https://${shop.myshopifyDomain}/admin/draft_orders/${record.draft_order_id}`, "_blank")}>
-                         View
-                        </Button>
+                      <Button variant={"plain"} icon={ViewIcon} onClick={() => window.open(`https://${shop.myshopifyDomain}/admin/draft_orders/${draftOrderId}`, "_blank")}>
+                        View
+                      </Button>
                     );
                   },
                 },

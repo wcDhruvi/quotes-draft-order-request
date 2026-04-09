@@ -58,35 +58,38 @@ const Installation = () => {
       description: "Click the button below to add a \"Request a Quote\" block to the cart page.",
       button: "Add Block on Cart Page",
       imgUrl: `${imageUrl}cart_image.png`
+    },
+    {
+      id: 4,
+      title: "Add Quote Order Requests to Customer Account",
+      description: "Allow customers to track their quote requests and view their quote details directly from their account portal.<br><br><b>Steps to Enable:</b><br> 1. Navigate to <b>Themes &rarr; Customize</b>.<br> 2. Click on <b>'Apps'</b> in the left sidebar.<br> 3. Select <b>'Uncap Quote Requests'</b> from the app list.<br> 4. Click on <b>'Quote Order Requests'</b> and enable it.",
+      button: "Enable Quote Order Requests Page",
+      imgUrl: `${imageUrl}customer_account_image.png`
     }
   ];
-  const handleToggle = () => {
-    setOpen(!open);
-  };
 
-  const handleTabChange = (index) => {
-    setSelected(index);
-  };
   const handleNavigate = (value) => {
-    value === 1 ? window.open(`${storeUrl}/${activeTheme.id}/editor?context=apps&activateAppId=57e80362-5a6c-4809-a9c4-1cddc032ad44/quote-script`, "_blank") :
-      value === 2 ? window.open(`${storeUrl}/current/editor?context=apps&previewPath=/products/${product.handle}&addAppBlockId=57e80362-5a6c-4809-a9c4-1cddc032ad44/quote-product&target=mainSection`, "_blank") :
-        window.open(`${storeUrl}/current/editor?previewPath=/cart&addAppBlockId=57e80362-5a6c-4809-a9c4-1cddc032ad44/quote-cart&target=mainSection`, "_blank");
+    const appId = "57e80362-5a6c-4809-a9c4-1cddc032ad44";
+    switch (value) {
+      case 1:
+        window.open(`${storeUrl}/${activeTheme.id}/editor?context=apps&activateAppId=${appId}/quote-script`, "_blank");
+        break;
+      case 2:
+        window.open(`${storeUrl}/current/editor?context=apps&previewPath=/products/${product.handle}&addAppBlockId=${appId}/quote-product&target=mainSection`, "_blank");
+        break;
+      case 3:
+        window.open(`${storeUrl}/current/editor?previewPath=/cart&addAppBlockId=${appId}/quote-cart&target=mainSection`, "_blank");
+        break;
+      case 4:
+        const shopHandle = shop.myshopifyDomain.replace(".myshopify.com", "");
+        window.open(`https://admin.shopify.com/store/${shopHandle}/settings/checkout`, "_blank");
+        break;
+      default:
+        break;
+    }
   };
 
-  const onCopyTestimonialSectionKey = (step, key) => {
-    const copyCode = document.getElementById(step);
-    copyCode.classList.add("copy-true");
-    const copyText = document.getElementById(key);
-    copyText.select();
-    copyText.setSelectionRange(0, 99999);
-    setActiveMessage(true);
-    document.execCommand('copy');
-    setMessage('Copied');
-    setTimeout(() => {
-      copyCode.classList.remove("copy-true");
-      copyText.setSelectionRange(0, 0);
-    }, 5000);
-  };
+
 
   const toggleActive = () => {
     setActiveMessage((activeMessage) => !activeMessage);
@@ -205,7 +208,10 @@ const Installation = () => {
                         <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
                           <BlockStack gap={"400"}>
                             <Text as="h2" variant="headingSm">{x.title}</Text>
-                            <Text>{x.description}</Text>
+                            <div
+                              dangerouslySetInnerHTML={{ __html: x.description }}
+                              style={{ color: 'var(--p-color-text)', fontSize: 'var(--p-font-size-200)' }}
+                            />
                             <span><Button onClick={() => handleNavigate(x?.id)} variant={"primary"}>{x.button}</Button></span>
                           </BlockStack>
                         </Grid.Cell>

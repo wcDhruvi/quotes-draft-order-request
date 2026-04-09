@@ -175,6 +175,28 @@ export const permissions: GadgetPermissions = {
             update: true,
           },
         },
+        shopifyDraftOrder: {
+          read: {
+            filter:
+              "accessControl/filters/shopify/shopifyDraftOrder.gelly",
+          },
+          actions: {
+            create: true,
+            delete: true,
+            update: true,
+          },
+        },
+        shopifyDraftOrderLineItem: {
+          read: {
+            filter:
+              "accessControl/filters/shopify/shopifyDraftOrderLineItem.gelly",
+          },
+          actions: {
+            create: true,
+            delete: true,
+            update: true,
+          },
+        },
         shopifyFile: {
           read: {
             filter: "accessControl/filters/shopify/shopifyFile.gelly",
@@ -290,6 +312,7 @@ export const permissions: GadgetPermissions = {
         analyticCreate: true,
         customApi: true,
         getAnalytics: true,
+        getCustomerQuotes: true,
         scheduledShopifySync: true,
         sendResponse: true,
       },
@@ -384,6 +407,25 @@ export const permissions: GadgetPermissions = {
               "accessControl/filters/shopify/storefront-customers/shopifyCustomerAddress.gelly",
           },
         },
+        shopifyDraftOrder: {
+          read: {
+            filter:
+              "accessControl/filters/shopify/storefront-customers/shopifyDraftOrder.gelly",
+          },
+          actions: {
+            create: true,
+            delete: true,
+            update: true,
+          },
+        },
+        shopifyDraftOrderLineItem: {
+          read: true,
+          actions: {
+            create: true,
+            delete: true,
+            update: true,
+          },
+        },
         shopifyFile: {
           read: true,
         },
@@ -410,6 +452,7 @@ export const permissions: GadgetPermissions = {
         analyticCreate: true,
         customApi: true,
         getAnalytics: true,
+        getCustomerQuotes: true,
         sendResponse: true,
       },
     },
@@ -517,6 +560,7 @@ export const permissions: GadgetPermissions = {
         analyticCreate: true,
         customApi: true,
         getAnalytics: true,
+        getCustomerQuotes: true,
         sendResponse: true,
       },
     },
@@ -590,6 +634,12 @@ export const permissions: GadgetPermissions = {
         shopifyCollection: {
           read: true,
         },
+        shopifyDraftOrder: {
+          read: true,
+        },
+        shopifyDraftOrderLineItem: {
+          read: true,
+        },
         shopifyFile: {
           read: true,
         },
@@ -618,6 +668,7 @@ export const permissions: GadgetPermissions = {
         analyticCreate: true,
         customApi: true,
         getAnalytics: true,
+        getCustomerQuotes: true,
         sendResponse: true,
       },
     },

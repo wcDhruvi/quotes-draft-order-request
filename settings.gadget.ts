@@ -17,6 +17,8 @@ export const settings: GadgetSettings = {
           "shopifyCustomer",
           "shopifyCustomerAddress",
           "shopifyCustomerMergeable",
+          "shopifyDraftOrder",
+          "shopifyDraftOrderLineItem",
           "shopifyFile",
           "shopifyProduct",
           "shopifyProductMedia",

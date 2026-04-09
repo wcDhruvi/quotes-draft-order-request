@@ -179,8 +179,10 @@ export const run = async ({ params, record, logger, api, connections }) => {
     throw new Error("Failed to create draft order");
   }
 
+  const draft_order_id = draftOrderResult.draftOrderCreate.draftOrder.id.replace("gid://shopify/DraftOrder/", "");
   // Update record with final data
-  record.draft_order_id = draftOrderResult.draftOrderCreate.draftOrder.id.replace("gid://shopify/DraftOrder/", "");
+  record.draft_order_id = draft_order_id;
+  record.draftOrder = { _link: draft_order_id };
   record.name = draftOrderResult.draftOrderCreate.draftOrder.name;
   record.customer = { _link: customer };
 

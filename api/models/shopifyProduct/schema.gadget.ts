@@ -14,6 +14,7 @@ export const schema: GadgetModel = {
       category: { filterIndex: false, searchIndex: false },
       compareAtPriceRange: { filterIndex: false, searchIndex: false },
       customCollections: true,
+      draftOrderLineItems: true,
       featuredMedia: true,
       handle: { filterIndex: false, searchIndex: false },
       hasVariantsThatRequiresComponents: {

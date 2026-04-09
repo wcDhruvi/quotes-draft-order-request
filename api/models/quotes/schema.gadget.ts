@@ -24,13 +24,17 @@ export const schema: GadgetModel = {
       type: "belongsTo",
       parent: { model: "shopifyCustomer" },
       storageKey: "rweyiKWY9IhK",
-      searchIndex: false,
     },
     customer_detail: {
       type: "json",
       storageKey: "__LbMyQcgqQG",
       filterIndex: false,
       searchIndex: false,
+    },
+    draftOrder: {
+      type: "belongsTo",
+      parent: { model: "shopifyDraftOrder" },
+      storageKey: "lxAczAq1lkA7",
     },
     draft_order_id: {
       type: "string",
@@ -62,5 +66,4 @@ export const schema: GadgetModel = {
       searchIndex: false,
     },
   },
-  searchIndex: false,
 };

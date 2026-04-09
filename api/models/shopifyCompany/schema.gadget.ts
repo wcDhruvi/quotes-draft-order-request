@@ -13,6 +13,7 @@ export const schema: GadgetModel = {
       contactCount: { filterIndex: false, searchIndex: false },
       contactsCount: { filterIndex: false, searchIndex: false },
       customerSince: { filterIndex: false, searchIndex: false },
+      draftOrders: true,
       externalId: { filterIndex: false, searchIndex: false },
       lifetimeDuration: { filterIndex: false, searchIndex: false },
       locationsCount: { filterIndex: false, searchIndex: false },

@@ -152,6 +152,8 @@ export const schema: GadgetModel = {
       customers: true,
       description: { filterIndex: false },
       domain: { filterIndex: false, searchIndex: false },
+      draftOrderLineItems: true,
+      draftOrders: true,
       eligibleForPayments: { filterIndex: false, searchIndex: false },
       email: { filterIndex: false, searchIndex: false },
       enabledPresentmentCurrencies: {
