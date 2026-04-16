@@ -1,5 +1,5 @@
 import { applyParams, save, ActionOptions, preventCrossShopDataAccess } from "gadget-server";
-
+ 
 export const run = async ({ params, record, logger, api, connections }) => {
   logger.info("------params--------" + JSON.stringify(params));
   logger.info("------record--------" + JSON.stringify(record));
@@ -9,10 +9,10 @@ export const run = async ({ params, record, logger, api, connections }) => {
   record.uqShopName = params.quotes.uqShopName;
   record.shop = params.quotes.shop;
   // record.customLineItems = params.quotes.customLineItems;
-
+ 
   // const customLineItems = params.quotes.customLineItems;
   await preventCrossShopDataAccess(params, record);
-
+ 
   const shopifyClient = await connections.shopify.forShopDomain(params.quotes.uqShopName);
   if (!shopifyClient) {
     throw new Error("Could not connect to Shopify");
@@ -23,15 +23,15 @@ export const run = async ({ params, record, logger, api, connections }) => {
     "variantId": `gid://shopify/ProductVariant/${x.variant_id}`,
     "quantity": x.quantity
   }));
-
-
-
+ 
+ 
+ 
   // Prepare custom attributes
   const customAttributes = Object.entries(params.quotes.customAttributes).map(([key, value]) => ({
     "key": key,
     "value": value
   }));
-
+ 
   // Get draft order tags
   const getDraftOrderTags = await api.quoteSetting.findFirst({
     filter: {
@@ -40,7 +40,7 @@ export const run = async ({ params, record, logger, api, connections }) => {
       },
     },
   });
-
+ 
   let customer = params?.quotes?.customer?._link ? params?.quotes?.customer?._link : "";
   logger.info("========getCustomer 1=========" + customer);
   const {
@@ -56,7 +56,7 @@ export const run = async ({ params, record, logger, api, connections }) => {
     zip,
     note
   } = params.quotes.customer_detail;
-
+ 
   // Search for existing customer by email
   const getCustomer = await shopifyClient.graphql(
     `query getCustomer($email: String!) {
@@ -73,18 +73,18 @@ export const run = async ({ params, record, logger, api, connections }) => {
       email: `email:${email}`
     }
   );
-
+ 
   logger.info("========getCustomer=========" + JSON.stringify(getCustomer));
   if (getCustomer?.errors?.length > 0) {
     throw new Error(getCustomer.errors.map(error => error.message).join(", "));
   }
-
+ 
   if (getCustomer?.customers?.edges?.length) {
     const shopifyCustomerId = getCustomer.customers.edges[0].node.id.replace("gid://shopify/Customer/", "");
     customer = shopifyCustomerId ? shopifyCustomerId : "";
   }
   logger.info("========customer=========" + customer);
-
+ 
   if (!customer || customer == 0) {
     const customerResult = await shopifyClient.graphql(`
         mutation customerCreate($input: CustomerInput!) {
@@ -120,20 +120,20 @@ export const run = async ({ params, record, logger, api, connections }) => {
       }
     );
     logger.info("========customerResult=========" + JSON.stringify(customerResult));
-
+ 
     if (customerResult.customerCreate?.userErrors?.length > 0) {
       let errorMessages = customerResult.customerCreate.userErrors.map(x => {
         return x.message;
       });
-
+ 
       throw new Error(errorMessages.join(", "));
     }
-
+ 
     customer = customerResult?.customerCreate?.customer?.id?.replace("gid://shopify/Customer/", "");
   }
-
-
-
+ 
+ 
+ 
   //Create draft order
   const draftOrderResult = await shopifyClient.graphql(`
     mutation draftOrderCreate($input: DraftOrderInput!) {
@@ -174,24 +174,24 @@ export const run = async ({ params, record, logger, api, connections }) => {
   if (draftOrderResult.draftOrderCreate?.userErrors?.length > 0) {
     throw new Error(draftOrderResult.draftOrderCreate.userErrors.map(e => e.message).join(", "));
   }
-
+ 
   if (!draftOrderResult.draftOrderCreate?.draftOrder) {
     throw new Error("Failed to create draft order");
   }
-
+ 
   const draft_order_id = draftOrderResult.draftOrderCreate.draftOrder.id.replace("gid://shopify/DraftOrder/", "");
   // Update record with final data
   record.draft_order_id = draft_order_id;
   record.draftOrder = { _link: draft_order_id };
   record.name = draftOrderResult.draftOrderCreate.draftOrder.name;
   record.customer = { _link: customer };
-
+ 
   // Save the record
   await save(record);
-
+ 
   return record;
 };
-
+ 
 /** @type { ActionOnSuccess } */
 export const onSuccess = async ({ params, record, logger, api, connections, emails }) => {
   const shopId = params?.quotes?.shop?._link;
@@ -199,11 +199,11 @@ export const onSuccess = async ({ params, record, logger, api, connections, emai
     logger.error("Missing shopId, aborting email send.");
     return;
   }
-
+ 
   const shop = await api.shopifyShop.findOne(shopId, {
     select: { name: true, domain: true, email: true }
   });
-
+ 
   logger.info("========shop=========" + JSON.stringify(shop));
   const customerEmail = record?.customer_detail?.email;
   const quoteSetting = await api.quoteSetting.findFirst({
@@ -227,26 +227,26 @@ export const onSuccess = async ({ params, record, logger, api, connections, emai
       merchant_button_color: true,
     }
   });
-
+ 
   const merchantEmail = quoteSetting?.recipient_email || shop?.email;
   const draftOrderName = record?.name || "N/A";
   const customerName = record?.customer_detail?.first_name || "Customer";
   const isCustomerEnabled = quoteSetting?.customer_email_enabled === "1";
   const isMerchantEnabled = quoteSetting?.merchant_email_enabled === "1";
-
+ 
   const replacePlaceholders = (text, defaultText = "") => {
     if (!text) return defaultText;
     return text
       .replace(/\[ORDER_NAME\]|ORDER_NAME/g, draftOrderName)
       .replace(/\[CUSTOMER_NAME\]|CUSTOMER_NAME/g, customerName);
   };
-
+ 
   const fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-
+ 
   const generateOrderSummaryHtml = (orderDetail) => {
     const items = orderDetail?.items || [];
     const noItemsText = quoteSetting?.customer_no_items || "No items found.";
-
+ 
     const itemsHtml = items.map(item => `
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 15px; font-family: ${fontFamily};">
         <tr>
@@ -271,15 +271,15 @@ export const onSuccess = async ({ params, record, logger, api, connections, emai
         </tr>
       </table>
     `).join("");
-
+ 
     const subtotal = ((orderDetail?.items_subtotal_price ?? 0) / 100).toFixed(2);
     const total = ((orderDetail?.total_price ?? 0) / 100).toFixed(2);
-
+ 
     return `
       <h3 style="margin-top: 35px; margin-bottom: 15px; font-size: 18px; font-weight: bold; color: #222; font-family: ${fontFamily}; border-bottom: 1px solid #eee; padding-bottom: 10px;">Order summary</h3>
-
+ 
       ${itemsHtml || `<p style='color:#666; font-size:14px; text-align:center; font-family: ${fontFamily}; margin: 20px 0;'>${noItemsText}</p>`}
-
+ 
       <div style="margin-top: 25px;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family: ${fontFamily};">
           <tr>
@@ -294,23 +294,23 @@ export const onSuccess = async ({ params, record, logger, api, connections, emai
       </div>
     `;
   };
-
+ 
   // Customer Email
   const customerHtml = `
     <div style="font-family: ${fontFamily}; max-width: 600px; margin: auto; padding: 40px 20px; color: #333; line-height: 1.6;">
       <h2 style="font-size: 26px; font-weight: bold; color: #111; margin: 0 0 25px 0; text-align: left;">${replacePlaceholders(quoteSetting?.customer_heading, "Quote Request Received")}</h2>
       <p style="font-size: 15px; margin: 0 0 15px 0;">${replacePlaceholders(quoteSetting?.customer_greeting, `Hello ${customerName},`)}</p>
       <p style="font-size: 15px; margin: 0 0 25px 0;">${replacePlaceholders(quoteSetting?.customer_instruction, `We've received your quote request <strong>${draftOrderName}</strong>.`)}</p>
-
+ 
       ${generateOrderSummaryHtml(record?.order_detail || {})}
-
+ 
       <p style="margin-top: 40px; font-size: 15px; color: #555;">${replacePlaceholders(quoteSetting?.customer_footer_text, "We'll review your request and get back to you shortly.")}</p>
       <div style="font-size: 12px; color: #999; border-top: 1px solid #eee; margin-top: 30px; padding-top: 25px; text-align: center;">
         Sent by ${shop?.name || ""} (${shop?.domain || ""})
       </div>
     </div>
   `;
-
+ 
   // Merchant Email
   const merchantHtml = `
     <div style="font-family: ${fontFamily}; max-width: 600px; margin: auto; padding: 40px 20px; color: #333; line-height: 1.6;">
@@ -327,9 +327,9 @@ export const onSuccess = async ({ params, record, logger, api, connections, emai
           <strong style="color: #333; min-width: 100px; display: inline-block;">${replacePlaceholders(quoteSetting?.merchant_note_label, "Customer Note:")}</strong> ${record?.customer_detail?.note || "No note provided"}
         </p>
       </div>
-
+ 
       ${generateOrderSummaryHtml(record?.order_detail || {})}
-
+ 
       ${record?.draft_order_id && shop?.domain
       ? `<div style="margin-top: 45px; text-align: center;">
             <a href="https://${shop.domain}/admin/draft_orders/${record.draft_order_id}" 
@@ -341,12 +341,12 @@ export const onSuccess = async ({ params, record, logger, api, connections, emai
     }
     </div>
   `;
-
+ 
   try {
     if (customerEmail && isCustomerEnabled) {
       await emails.send({
         to: customerEmail,
-        subject: replacePlaceholders(quoteSetting?.customer_subject, `Confirmation: We've received your quote request ${draftOrderName}`),
+        subject: replacePlaceholders(quoteSetting?.customer_subject, `Your Quote Request Has Been Received - ${draftOrderName}`),
         html: customerHtml
       });
       logger.info(`Quote confirmation email sent to customer: ${customerEmail}`);
@@ -355,11 +355,11 @@ export const onSuccess = async ({ params, record, logger, api, connections, emai
     } else {
       logger.warn("Customer email missing, skipping customer email.");
     }
-
+ 
     if (merchantEmail && isMerchantEnabled) {
       await emails.send({
         to: merchantEmail,
-        subject: replacePlaceholders(quoteSetting?.merchant_subject, `Action Required: New Quote Request ${draftOrderName}`),
+        subject: replacePlaceholders(quoteSetting?.merchant_subject, `New Quote Request Submitted - ${draftOrderName}`),
         html: merchantHtml
       });
       logger.info(`Quote alert email sent to merchant: ${merchantEmail}`);
@@ -368,12 +368,12 @@ export const onSuccess = async ({ params, record, logger, api, connections, emai
     } else {
       logger.warn("Merchant email missing, skipping merchant email.");
     }
-
+ 
   } catch (error) {
     logger.error("Error sending quote notification emails:", error);
   }
 };
-
+ 
 /** @type { ActionOptions } */
 export const options = {
   actionType: "create",
