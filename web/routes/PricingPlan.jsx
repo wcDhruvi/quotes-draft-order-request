@@ -18,6 +18,8 @@ import { ShopContext } from "../providers";
 // This is the billing page that will be displayed when a user hasn't selected a plan or they want to change plans.
 export default () => {
 
+  const { shop } = useContext(ShopContext);
+ 
   const [show, setShow] = useState(false);
   const [bannerContext, setBannerContext] = useState("");
 
@@ -62,17 +64,23 @@ export default () => {
         )}
         <Layout>
           {plans?.length ? (
-            plans?.map((plan) => (
-              <Layout.Section variant="oneThird" key={plan.id}>
-                <PlanCard
-                  id={plan.id}
-                  name={plan.name}
-                  description={plan.description}
-                  monthlyPrice={plan.monthlyPrice}
-                  trialDays={plan.trialDays}
-                />
-              </Layout.Section>
-            ))
+            plans?.map((plan) => {
+              const effectiveTrialDays = (shop?.trialDaysOverride !== null && shop?.trialDaysOverride !== undefined)
+                ? shop.trialDaysOverride
+                : plan.trialDays;
+
+              return (
+                <Layout.Section variant="oneThird" key={plan.id}>
+                  <PlanCard
+                    id={plan.id}
+                    name={plan.name}
+                    description={plan.description}
+                    monthlyPrice={plan.monthlyPrice}
+                    trialDays={effectiveTrialDays}
+                  />
+                </Layout.Section>
+              );
+            })
           ) : ""}
         </Layout>
       </BlockStack>

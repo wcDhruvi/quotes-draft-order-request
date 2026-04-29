@@ -33,12 +33,21 @@ export const run = async ({
     if (planMatch) {
       const today = new Date();
 
+      // Determine effective trial days: use shop override if set, otherwise use plan default
+      const effectiveTrialDays = (record.trialDaysOverride !== null && record.trialDaysOverride !== undefined)
+        ? record.trialDaysOverride
+        : planMatch.trialDays;
+
+      logger.info(
+        `Trial days for shop ${record.id}: using ${effectiveTrialDays} days (source: ${(record.trialDaysOverride !== null && record.trialDaysOverride !== undefined) ? "shop override" : "plan default"})`
+      );
+
       // Check for trial availability
       const { usedTrialMinutes, availableTrialDays } = trialCalculations(
         record.usedTrialMinutes,
         record.usedTrialMinutesUpdatedAt,
         today,
-        planMatch.trialDays
+        effectiveTrialDays
       );
 
       if (!planMatch.monthlyPrice) {

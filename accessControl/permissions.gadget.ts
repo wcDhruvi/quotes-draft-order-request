@@ -283,6 +283,7 @@ export const permissions: GadgetPermissions = {
             subscribe: true,
             uninstall: true,
             update: true,
+            updateShop: true,
           },
         },
         shopifySync: {

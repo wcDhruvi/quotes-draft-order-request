@@ -57,6 +57,7 @@ export default ({ children }) => {
         usedTrialMinutes: true,
         usedTrialMinutesUpdatedAt: true,
         onBording: true,
+        trialDaysOverride: true,
         AppPlan: {
           id: true,
           name: true,

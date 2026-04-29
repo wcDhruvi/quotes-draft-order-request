@@ -97,6 +97,14 @@ export const schema: GadgetModel = {
       child: { model: "shopifyApp", belongsToField: "shopifyShop" },
       storageKey: "vQqku-khf8sv",
     },
+    trialDaysOverride: {
+      type: "number",
+      decimals: 0,
+      validations: { numberRange: { min: 0, max: null } },
+      storageKey: "LenmM_Hb9yNE",
+      filterIndex: false,
+      searchIndex: false,
+    },
     usedTrialMinutes: {
       type: "number",
       storageKey: "ZI_AndW9gJKe",
