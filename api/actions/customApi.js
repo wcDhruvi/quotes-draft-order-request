@@ -21,7 +21,9 @@ export const run = async ({ params, logger, api }) => {
       },
       select: { activeRecurringSubscriptionId: true, AppPlanId: true }
     });
+    logger.info("---------shopData----------" + JSON.stringify(shopData));
     if (shopData?.activeRecurringSubscriptionId && shopData.AppPlanId) {
+      logger.info("---------shopData----------" + JSON.stringify(shopData));
       const cartTotalPrice = cartProduct.total_price / 100;
       const settings = await api.setting.findFirst({
         filter: {
@@ -30,6 +32,7 @@ export const run = async ({ params, logger, api }) => {
           },
         },
       });
+      logger.info("---------settings----------" + JSON.stringify(settings));
       const quoteSetting = await api.quoteSetting.findFirst({
         filter: {
           shopId: {
@@ -37,13 +40,13 @@ export const run = async ({ params, logger, api }) => {
           },
         },
       });
-
+      logger.info("---------quoteSetting----------" + JSON.stringify(quoteSetting));
 
       if (settings?.is_quote_enable === "0") {
         logger.info("---------is_quote_enable----------" + isDisplayQuoteButton);
         isDisplayQuoteButton = false;
       }
-
+      logger.info("---------is_all_product----------" + isDisplayQuoteButton);
       if (quoteSetting?.is_all_product === "0") {
         if (quoteSetting?.product_ids.length > 0) {
           const productFound = cartProduct.some(item => quoteSetting?.product_ids.includes(item.product_id.toString()));
@@ -81,6 +84,7 @@ export const run = async ({ params, logger, api }) => {
         //ucCustomerId find customer Tag
         //not metch any customer Tag to isDisplayQuoteButton = true
       }
+      logger.info("---------product_tags----------" + isDisplayQuoteButton);
       if (quoteSetting?.product_tags.length > 0 && isDisplayQuoteButton) {
         logger.info("---------product_tags----------" + isDisplayQuoteButton);
         const product = [];
@@ -152,7 +156,7 @@ export const run = async ({ params, logger, api }) => {
       }
 
       let result = { settings: settings, quoteSetting: quoteSetting, isDisplayQuoteButton, formFields };
-
+      logger.info("---------result----------" + JSON.stringify(result));
       // Process based on action parameter
 
       return {
@@ -161,6 +165,7 @@ export const run = async ({ params, logger, api }) => {
         errors: []
       };
     } else {
+      logger.info("---------else----------" + JSON.stringify(result));
       return {
         success: false,
         data: { settings: {}, quoteSetting: {}, isDisplayQuoteButton: false, formFields: [], message: "App Plan not activated" },

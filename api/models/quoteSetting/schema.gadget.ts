@@ -86,6 +86,7 @@ export const schema: GadgetModel = {
     },
     is_all_product: {
       type: "enum",
+      default: "1",
       acceptMultipleSelections: false,
       acceptUnlistedOptions: false,
       options: ["0", "1"],
