@@ -15,6 +15,7 @@
 }
 
 .uc-add-to-quotes-btn {
+    position: relative;
     padding: 15px 30px;
     border-radius: 0;
     cursor: pointer;
@@ -23,6 +24,13 @@
     font-size: 15px;
     line-height: 18px;
     letter-spacing: 1px
+}
+
+.uc-add-to-quotes-btn:disabled,
+.uc-add-to-quotes-btn.uc-add-to-quotes-btn--sold-out {
+    cursor: not-allowed;
+    opacity: 0.55;
+    filter: grayscale(0.35);
 }
 
 .uc-modal {
@@ -214,35 +222,40 @@ textarea.uc-form-control {
     opacity: 1;
 }
 
-.uc-button-loading .uc-button-text {
+/* Submit / action button loading — needs position:relative (see .uc-btn) */
+.uc-button-loading,
+.button-loading-spinner {
+    position: relative;
+    pointer-events: none;
+    cursor: wait;
+}
+
+.uc-button-loading .uc-button-text,
+.button-loading-spinner .uc-button-text {
     visibility: hidden;
     opacity: 0;
 }
 
-.uc-button-loading::after {
+/* Centered ring; only top arc uses theme override via injected style */
+.uc-button-loading::after,
+.button-loading-spinner::after {
     content: "";
+    box-sizing: border-box;
     position: absolute;
-    width: 20px;
-    height: 20px;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin: auto;
-    border: 3px solid;
-    border-top-color: rgba(0, 0, 0, 0);
-    border-left-color: rgba(0, 0, 0, 0);
-    animation: button-loading-spinner .7s infinite linear;
+    top: 50%;
+    left: 50%;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: -0.625rem 0 0 -0.625rem;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: rgba(0, 0, 0, 0.45);
     border-radius: 50%;
+    animation: button-loading-spinner 0.65s linear infinite;
 }
 
 @keyframes button-loading-spinner {
-    from {
-        transform: rotate(0deg)
-    }
-
     to {
-        transform: rotate(360deg)
+        transform: rotate(360deg);
     }
 }
 

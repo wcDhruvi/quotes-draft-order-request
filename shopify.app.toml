@@ -3,7 +3,7 @@
 client_id = "72017730e68a13935dd1cf6596a33e68"
 name = "Uncap Quote Requests"
 handle = "uncap-quotes"
-application_url = "https://quotes-draft-order-request.gadget.app/"
+application_url = "https://quotes-draft-order-request.gadget.app/api/shopify/install-or-render"
 embedded = true
 
 [build]

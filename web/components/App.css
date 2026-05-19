@@ -34,10 +34,13 @@ figure.theme_screenshot, figure.theme_screenshot a, figure.theme_screenshot img 
 figure.theme_screenshot {margin: 0;height: 100%;border: 1px solid #f1f1f1;border-radius: 5px;padding: 0;line-height: 0;position: relative;}
 figure.theme_screenshot img {cursor: pointer; border-radius: 5px;position: absolute;left: 0;top: 0;object-fit: cover;object-position: left;height: 100%;}
 .copy-code {width: 100%;display: inline-block;position: relative;}
-.copy-code .cc-input-text {width: 100%;display: inline-block;font-size: 14px;color: #000;background-color: #fff;line-height: 20px;border: 1px solid #e6e6e6;margin: 0;padding: 10px 45px 10px 12px;border-radius: 6px;outline: none;-webkit-appearance: none;appearance: none;}
-.copy-code button.cc-copy {width: 40px;height: 40px;line-height: 0;display: flex;flex-wrap: wrap;align-items: center;justify-content: center;position: absolute;right: 0;top: 50%;margin-top: -20px;background: transparent;border: 0;cursor: pointer;}
+.copy-code .cc-input-text {width: 100%;display: inline-block;font-size: 14px;color: #000;background-color: #fff;line-height: 20px;border: 1px solid #e6e6e6;margin: 0;padding: 10px 10px 10px 12px;border-radius: 6px;outline: none;-webkit-appearance: none;appearance: none;scrollbar-width: none;}
+.copy-code button.cc-copy {width: 40px;height: 40px;line-height: 0;display: flex;flex-wrap: wrap;align-items: center;justify-content: center;position: absolute;right: 0;top: 5%;margin-top: 0px;background: transparent;border: 0;cursor: pointer;}
 .copy-code button.cc-copy svg {width: 16px;height: 16px;fill: #000;}
-.copy-code button.cc-copy svg.cc-true-icon {display: none;fill: #000;}
+.copy-code button.cc-copy .cc-true-icon {display: none;}
+.copy-code button.cc-copy.copied .cc-copy-icon {display: none;}
+.copy-code button.cc-copy.copied .cc-true-icon {display: block;}
+.copy-code textarea.cc-snippet-textarea {resize: vertical;min-height: 145px;font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;font-size: 13px;line-height: 1.4;}
 iframe.clickup-embed {height: 100%;width: 100%;border: 0;box-shadow: none;}
 .main_spinner{height: 100vh;display: flex;justify-content: center;align-items: center;}
 .Polaris-InlineStack .Polaris-ActionList__Prefix .Polaris-Icon svg.Polaris-Icon__Svg {fill: #0c5132;}

@@ -14,6 +14,240 @@ const ucCartJson = async function (haGetUrl) {
   return haCartResponse.json();
 };
 
+const productDataCache = new Map();
+
+/**
+ * @param {string | null | undefined} handle
+ * @returns {Promise<object | null>}
+ */
+async function fetchProductDataByHandle(handle) {
+  if (!handle) return null;
+
+  if (productDataCache.has(handle)) {
+    return productDataCache.get(handle);
+  }
+
+  const response = await fetch(`/products/${encodeURIComponent(handle)}.js`, {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const data = await response.json();
+  productDataCache.set(handle, data);
+  return data;
+}
+
+/**
+ * Match theme / Gadget variant ids that may include a suffix (e.g. "123-...") to Shopify JSON ids.
+ * @param {unknown} a
+ * @param {unknown} b
+ */
+const ucVariantIdsMatch = (a, b) => {
+  if (a == null || b == null) return false;
+  const sa = String(a).trim();
+  const sb = String(b).trim();
+  if (sa === sb) return true;
+  const na = sa.match(/^(\d+)/)?.[1];
+  const nb = sb.match(/^(\d+)/)?.[1];
+  if (na && nb && na === nb) return true;
+  return false;
+};
+
+/**
+ * If `data-variant-id` is set, use that variant's `available`; otherwise use product-level `available`.
+ * @param {object | null} productJson
+ * @param {string | null | undefined} variantIdAttr
+ */
+const resolveInventoryAvailability = (productJson, variantIdAttr) => {
+  if (!productJson) return true;
+
+  const vid = variantIdAttr?.trim();
+  const variants = productJson.variants || [];
+
+  if (vid) {
+    const variant = variants.find((v) => ucVariantIdsMatch(v.id, vid));
+    if (variant) return !!variant.available;
+    return !!productJson.available;
+  }
+
+  return !!productJson.available;
+};
+
+/** Cached quote API result so variant/URL updates do not re-fetch settings every time. */
+let ucQuoteProductSettingsCache = null;
+
+/**
+ * @returns {string | null}
+ */
+const ucGetUrlVariantId = () => {
+  const fromSearch = new URLSearchParams(window.location.search).get("variant");
+  if (fromSearch?.trim()) return fromSearch.trim();
+  const hashMatch = window.location.hash.match(/variant=(\d+)/);
+  return hashMatch?.[1] || null;
+};
+
+/**
+ * @param {Element} container
+ * @returns {string | null}
+ */
+const ucGetFormVariantIdNearContainer = (container) => {
+  let parent = container.parentElement;
+  while (parent && parent !== document.body) {
+    const form = parent.querySelector('form[action="/cart/add"]');
+    if (form) {
+      const input = form.querySelector('input[name="id"], select[name="id"]');
+      if (input?.value?.trim()) return input.value.trim();
+    }
+    parent = parent.parentElement;
+  }
+  return null;
+};
+
+/**
+ * @param {Element} container
+ */
+const ucEnsureDefaultVariantId = (container) => {
+  if (!container.getAttribute("data-default-variant-id")) {
+    const initial = container.getAttribute("data-variant-id")?.trim();
+    if (initial) {
+      container.setAttribute("data-default-variant-id", initial);
+    }
+  }
+};
+
+/**
+ * Active variant: URL ?variant= → form selection → data-variant-id (Liquid default).
+ * @param {Element} container
+ * @returns {string | null}
+ */
+const ucResolveVariantIdForContainer = (container) => {
+  ucEnsureDefaultVariantId(container);
+  const urlVariant = ucGetUrlVariantId();
+  const formVariant = ucGetFormVariantIdNearContainer(container);
+  const dataVariant = container.getAttribute("data-variant-id")?.trim() || null;
+  const defaultVariant = container.getAttribute("data-default-variant-id")?.trim() || null;
+
+  return urlVariant || formVariant || dataVariant || defaultVariant;
+};
+
+/**
+ * @param {object | null} productJson
+ * @param {string | null | undefined} variantId
+ * @param {string | null | undefined} fallbackVariantId - data-variant-id / default when URL variant unknown
+ */
+const resolveInventoryAvailabilityWithFallback = (
+  productJson,
+  variantId,
+  fallbackVariantId
+) => {
+  if (!productJson) return true;
+
+  const variants = productJson.variants || [];
+  const primary = variantId?.trim();
+
+  if (primary) {
+    const variant = variants.find((v) => ucVariantIdsMatch(v.id, primary));
+    if (variant) return !!variant.available;
+
+    const fallback = fallbackVariantId?.trim();
+    if (fallback && !ucVariantIdsMatch(primary, fallback)) {
+      const fallbackVariant = variants.find((v) => ucVariantIdsMatch(v.id, fallback));
+      if (fallbackVariant) return !!fallbackVariant.available;
+    }
+
+    return !!productJson.available;
+  }
+
+  return resolveInventoryAvailability(productJson, fallbackVariantId);
+};
+
+/**
+ * Enable/disable quote button for one container from cached settings + product JSON.
+ * @param {Element} container
+ */
+const ucRefreshQuoteButtonForContainer = async (container) => {
+  if (!ucQuoteProductSettingsCache) {
+    await ucAddToCartGetQuotesDetails();
+    return;
+  }
+
+  const { settingBase, byProduct, showQuote } = ucQuoteProductSettingsCache;
+  const productId = container.getAttribute("data-product-id");
+  if (!productId) return;
+
+  const showForProduct = byProduct[productId] ?? showQuote;
+  if (!showForProduct) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const activeVariantId = ucResolveVariantIdForContainer(container);
+  if (activeVariantId) {
+    container.setAttribute("data-variant-id", activeVariantId);
+  }
+
+  const handle = container.getAttribute("data-product-handle")?.trim() || null;
+  const fallbackVariantId =
+    container.getAttribute("data-default-variant-id")?.trim() ||
+    container.getAttribute("data-variant-id")?.trim() ||
+    null;
+
+  const productJson = handle ? await fetchProductDataByHandle(handle) : null;
+  const inventoryAvailable = resolveInventoryAvailabilityWithFallback(
+    productJson,
+    activeVariantId,
+    fallbackVariantId
+  );
+
+  ucRenderAddToQuotesButtonForContainer(container, settingBase, { inventoryAvailable });
+};
+
+let ucVariantRefreshTimer = null;
+
+const ucScheduleQuoteButtonsRefresh = () => {
+  if (ucVariantRefreshTimer) clearTimeout(ucVariantRefreshTimer);
+  ucVariantRefreshTimer = setTimeout(async () => {
+    ucVariantRefreshTimer = null;
+    const containers = document.querySelectorAll(".uc-add-to-quotes");
+    if (!containers.length) return;
+
+    if (!ucQuoteProductSettingsCache) {
+      await ucAddToCartGetQuotesDetails();
+      return;
+    }
+
+    await Promise.all(
+      Array.from(containers).map((container) => ucRefreshQuoteButtonForContainer(container))
+    );
+  }, 80);
+};
+
+/**
+ * After successful add-to-quote redirect (add_to_cart_redirect / direct_checkout).
+ * @param {Record<string, unknown> | null | undefined} setting
+ * @param {object} data - /cart/add.js response
+ */
+const handleAddToQuoteRedirect = (setting, data) => {
+  const direct_checkout = String(setting?.add_to_cart_redirect ?? "3");
+
+  if (direct_checkout === "1") {
+    window.location.href = "/checkout";
+  } else if (direct_checkout === "2") {
+    if (typeof ucQuoteCallback === "function") {
+      ucQuoteCallback(data);
+    } else {
+      window.location.href = "/cart";
+    }
+  } else {
+    window.location.href = "/cart";
+  }
+};
+
 
 const ucLayoutCssEvent = (setting) => {
   if (document.querySelectorAll("#ucLayoutCssCart").length === 0) {
@@ -49,7 +283,7 @@ const ucLayoutCssEvent = (setting) => {
       }; color: ${setting.quote_popup_heading_color}}`;
     ucCss += `.uc-modal-cancel-btn{color: ${setting.quote_cancel_button_color}; background-color:${setting.quote_close_button_color}}`;
     ucCss += `.uc-modal-submit-btn, #successToast{color: ${setting.quote_submit_button_color}; background-color:${setting.quote_submit_button_background_color}}`;
-    ucCss += `.uc-button-loading::after{border-color: ${setting.quote_submit_button_color};}`;
+    ucCss += `.uc-button-loading::after,.button-loading-spinner::after{border-color:rgba(255,255,255,.35);border-top-color:${setting.quote_submit_button_color};}`;
     if (setting.is_effect_quote_button == 1) {
       ucCss += `@-webkit-keyframes quote-glowing {
                 0% {background-color: ${setting.quote_button_background_color}; -webkit-box-shadow: 0 0 3px ${setting.quote_button_background_color}; }
@@ -96,6 +330,7 @@ const ucAddToQuotesCssEvent = (setting) => {
 
     ucCss += `.uc-add-to-quotes-btn{background-color: ${setting.add_to_cart_btn_bg_color}; border-color: ${setting.add_to_cart_btn_border_color};color: ${setting.add_to_cart_btn_text_color};}`;
     ucCss += `.uc-add-to-quotes-btn:hover{background-color: ${setting.add_to_cart_btn_bg_hover_color}; border-color: ${setting.add_to_cart_btn_border_hover_color};color: ${setting.add_to_cart_btn_text_hover_color};}`;
+    ucCss += `.uc-add-to-quotes-btn.uc-button-loading::after,.uc-add-to-quotes-btn.button-loading-spinner::after{border-color:rgba(255,255,255,.35);border-top-color:${setting.add_to_cart_btn_text_color};}`;
     if (setting.is_add_to_cart_quotes == "1") {
       ucCss += `.product-form__submit{display: none !important}`;
     }
@@ -222,7 +457,7 @@ const onCloseModal = () => {
 };
 
 const renderModal = (customFields, setting) => {
-  
+
   document.querySelectorAll(".uc-modal").forEach(el => el.remove());
 
   document.querySelector("body").classList.remove("uc_modal_is_open");
@@ -516,11 +751,12 @@ const ucRenderQuotesButton = async (customFields, setting) => {
 const displayQuoteButton = async (cartProduct, cartTotalPrice, type) => {
   const getQuote = await api.customApi(
     {
-      payload: { shopId: window.shopId, cartProduct, ucCustomerId, type },
+      payload: { shopId: window.shopId, cartProduct, ucCustomerId, type, cartTotalPrice },
     }
   );
   return { ...getQuote.data };
 };
+
 const qcGetQuotesDetails = async () => {
   const quCartJson = await ucCartJson("/cart.json").then((quCartResponse) => {
     return quCartResponse;
@@ -537,91 +773,505 @@ const qcGetQuotesDetails = async () => {
 
 // const ucRenderAddToQuotesButton = (setting) => {
 //   ucAddToQuotesCssEvent(setting);
-//   let ucAddToQuotesBtn = "";
-//   ucAddToQuotesBtn +=
-//     '<button class="uc-add-to-quotes-btn" type="button">' +
-//     setting?.add_to_cart_btn_text +
-//     "</button>";
-//   if (document.querySelector(".uc-add-to-quotes")) {
-//     document.querySelector(".uc-add-to-quotes").innerHTML = ucAddToQuotesBtn;
-//     document.querySelector(".uc-add-to-quotes-btn").addEventListener("click", function (e) {
 
-//       document.querySelector(".product-form__submit")?.click();
-//     });
-//     if (setting.is_add_to_cart_quotes == "1") {
-//       document.querySelectorAll('form[action="/cart/add"]')
-//         .forEach(function (this_loop) {
-//           if (this_loop.querySelector('button[type="submit"]') || this_loop.querySelector(".product-form__submit")) {
-//             let add_to_cart_btn = this_loop.querySelector('button[type="submit"]') ? this_loop.querySelector('button[type="submit"]') : "";
-//             if (add_to_cart_btn || add_to_cart_btn.innerText == "add to cart") {
-//               add_to_cart_btn.style.display = "none";
-//             }
-//             this_loop.querySelector(".product-form__submit")
-//               ? (this_loop.querySelector(".product-form__submit").style.display =
-//                 "none")
-//               : "";
-//           }
-//         });
+//   let ucAddToQuotesBtn = `
+//     <button class="uc-add-to-quotes-btn" type="button">
+//       ${setting?.add_to_cart_btn_text || "Add to Quote"}
+//     </button>
+//   `;
+
+//   const quoteContainer = document.querySelector(".uc-add-to-quotes");
+//   if (!quoteContainer) return;
+
+//   // Inject Quote Button
+//   quoteContainer.innerHTML = ucAddToQuotesBtn;
+
+//   let detectedAddToCartBtn = null;
+
+//   // Find actual Add to Cart button inside cart forms
+//   document.querySelectorAll('form[action="/cart/add"]').forEach((form) => {
+//     let btn = form.querySelector('button[type="submit"]') || form.querySelector(".product-form__submit");
+
+//     if (btn) {
+//       detectedAddToCartBtn = btn;
+
+//       // Hide original Add to Cart button if setting enabled
+//       if (setting?.is_add_to_cart_quotes == "1") {
+//         btn.style.display = "none";
+//       }
 //     }
+//   });
+
+//   // Add click event to Quote button
+//   const quoteBtn = document.querySelector(".uc-add-to-quotes-btn");
+
+//   quoteBtn?.addEventListener("click", function () {
+//     if (detectedAddToCartBtn) {
+//       detectedAddToCartBtn.click();
+//     } else {
+//       console.warn("Add to Cart button not found");
+//     }
+//   });
+
+//   // quoteBtn?.addEventListener("click", async function () {
+//   //   try {
+//   //     // Get current variant ID
+//   //     const variantInput = document.querySelector(
+//   //       'form[action="/cart/add"] input[name="id"]'
+//   //     );
+
+//   //     const quantityInput = document.querySelector('form[action="/cart/add"] input[name="quantity"]');
+//   //     const quantity = parseInt(quantityInput?.value || "1", 10);
+
+//   //     if (!variantInput?.value) {
+//   //       console.warn("Variant ID not found");
+//   //       return;
+//   //     }
+
+//   //     const variantId = variantInput.value;
+
+//   //     // Add to cart using Shopify AJAX API
+//   //     const response = await fetch("/cart/add.js", {
+//   //       method: "POST",
+//   //       headers: {
+//   //         "Content-Type": "application/json",
+//   //         Accept: "application/json",
+//   //       },
+//   //       body: JSON.stringify({
+//   //         items: [
+//   //           {
+//   //             id: variantId,
+//   //             quantity: quantity,
+//   //             properties: {
+//   //               "_is_quote": "true",
+//   //               "_quote_type": "request_quote",
+//   //             },
+//   //           },
+//   //         ],
+//   //       }),
+//   //     });
+
+//   //     const data = await response.json();
+
+//   //     console.log("Added to cart:", data);
+
+//   //     // Get updated cart sections (THIS is what theme expects)
+//   //     // IMPORTANT: include cart-items section
+//   //     const sections = await fetch(
+//   //       "/?sections=cart-items,cart-icon-bubble,cart-drawer"
+//   //     ).then(res => res.json());
+
+//   //     console.log("Sections:", sections);
+//   //     // Safe dispatch
+//   //     // document.dispatchEvent(
+//   //     //   new CustomEvent("cart:update", {
+//   //     //     bubbles: true,
+//   //     //     detail: {
+//   //     //       sections: sections || {}
+//   //     //     }
+//   //     //   })
+//   //     // );
+
+//   //   } catch (error) {
+//   //     console.error("Add to cart failed", error);
+//   //   }
+//   // });
+// };
+
+// const updateCartUI = async () => {
+//   try {
+//     const cartState = await fetch("/cart.js").then(r => r.json());
+//     const itemCount = cartState.item_count;
+
+//     // ============================================================
+//     // MOST UNIVERSAL: Direct DOM scan — no section fetching needed
+//     // Find cart count element by scanning visible number in DOM
+//     // ============================================================
+//     let updated = false;
+
+//     // Known cart count selectors across ALL major themes
+//     const countSelectors = [
+//       // Your theme
+//       "#cart-bubble-text",
+//       ".cart-bubble__text-count",
+//       // Dawn / Sense / Refresh
+//       ".cart-count-bubble span:not(.visually-hidden)",
+//       // Debut / Simple / Brooklyn
+//       "#CartCount",
+//       ".cart__count",
+//       // Impulse / Turbo
+//       ".cart-link__bubble-num",
+//       // Broadcast
+//       ".header__cart-count",
+//       // Prestige
+//       ".Cart__ItemCount",
+//       // Minimal / Supply
+//       "#cart-item-count",
+//       ".cart-item-count",
+//       // Pipeline
+//       ".cart_count",
+//       // Venue / Symmetry
+//       ".cart-quantity",
+//       ".cart-link .count",
+//       // Generic
+//       "[data-cart-count]",
+//       "[data-cart-item-count]",
+//       // Your theme specific
+//       ".cart-bubble__text-count",
+//       "cart-icon-bubble",
+//     ];
+
+//     countSelectors.forEach(selector => {
+//       try {
+//         document.querySelectorAll(selector).forEach(el => {
+//           el.textContent = itemCount;
+//           el.classList.remove("visually-hidden", "hidden", "is-hidden", "hide");
+//           el.removeAttribute("hidden");
+//           updated = true;
+//           console.log("✅ Updated via selector:", selector, "→", itemCount);
+//         });
+//       } catch (e) {}
+//     });
+
+//     // ============================================================
+//     // FALLBACK: Scan entire DOM for cart-related numeric elements
+//     // ============================================================
+//     if (!updated) {
+//       const cartKeywords = ["cart", "Cart", "basket", "Basket", "bag", "Bag", "bubble", "Bubble"];
+
+//       document.querySelectorAll("*").forEach(el => {
+//         if (el.children.length > 0) return;
+
+//         const id = el.id || "";
+//         const cls = typeof el.className === "string" ? el.className : "";
+
+//         const isCartEl = cartKeywords.some(k => id.includes(k) || cls.includes(k));
+//         if (!isCartEl) return;
+
+//         const text = el.textContent.trim();
+//         if (/^\d+$/.test(text) || text === "") {
+//           el.textContent = itemCount;
+//           el.classList.remove("visually-hidden", "hidden", "is-hidden", "hide");
+//           el.removeAttribute("hidden");
+//           updated = true;
+//           console.log("✅ Updated via DOM scan:", el.tagName, id, cls, "→", itemCount);
+//         }
+//       });
+//     }
+
+//     // ============================================================
+//     // LAST RESORT: Re-render only the header_section specifically
+//     // Use the exact section ID from YOUR theme
+//     // ============================================================
+//     if (!updated) {
+//       try {
+//         // Fetch only the header section — not all sections
+//         const headerSectionEl = document.querySelector(
+//           "[id*='header_section'], [id*='header-section']"
+//         );
+
+//         if (headerSectionEl) {
+//           const sectionId = headerSectionEl.id.replace("shopify-section-", "");
+//           const res = await fetch(`/?sections=${sectionId}`);
+//           const data = await res.json();
+
+//           if (data[sectionId]) {
+//             const parser = new DOMParser();
+//             const newDoc = parser.parseFromString(data[sectionId], "text/html");
+//             const newSection = newDoc.querySelector(`#shopify-section-${sectionId}`);
+
+//             if (newSection) {
+//               headerSectionEl.innerHTML = newSection.innerHTML;
+//               updated = true;
+//               console.log("✅ Header section re-rendered");
+//             }
+//           }
+//         }
+//       } catch (e) {
+//         console.warn("Header section fetch failed:", e);
+//       }
+//     }
+
+//     console.log(`✅ Cart UI update complete — count: ${itemCount}, updated: ${updated}`);
+//     return cartState;
+
+//   } catch (err) {
+//     console.error("❌ Cart UI update failed:", err);
 //   }
 // };
 
-
-const ucRenderAddToQuotesButton = (setting) => {
+const ucRenderAddToQuotesButtonForContainer = (container, setting, options = {}) => {
+  const { inventoryAvailable = true } = options;
   ucAddToQuotesCssEvent(setting);
 
-  let ucAddToQuotesBtn = `
-    <button class="uc-add-to-quotes-btn" type="button">
-      ${setting?.add_to_cart_btn_text || "Add to Quote"}
+  const productId = container.getAttribute("data-product-id");
+  const variantId = container.getAttribute("data-variant-id")?.trim() || null;
+
+  console.log("variant id render", variantId)
+
+  const soldOutClass = inventoryAvailable ? "" : " uc-add-to-quotes-btn--sold-out";
+  const disabledAttrs = inventoryAvailable
+    ? ""
+    : ' disabled aria-disabled="true"';
+
+  container.innerHTML = `
+    <button class="uc-add-to-quotes-btn${soldOutClass}" type="button"${disabledAttrs}>
+      <span class="uc-button-text">${setting?.add_to_cart_btn_text || "Add to Quote"}</span>
     </button>
   `;
 
-  const quoteContainer = document.querySelector(".uc-add-to-quotes");
-  if (!quoteContainer) return;
+  const quoteBtn = container.querySelector(".uc-add-to-quotes-btn");
+  if (quoteBtn && !inventoryAvailable) {
+    quoteBtn.title =
+      setting?.sold_out_quote_tooltip || "This product is currently unavailable for purchase.";
+  }
 
-  // Inject Quote Button
-  quoteContainer.innerHTML = ucAddToQuotesBtn;
-
-  let detectedAddToCartBtn = null;
-
-  // Find actual Add to Cart button inside cart forms
-  document.querySelectorAll('form[action="/cart/add"]').forEach((form) => {
-    let btn = form.querySelector('button[type="submit"]') || form.querySelector(".product-form__submit");
-
-    if (btn) {
-      detectedAddToCartBtn = btn;
-
-      // Hide original Add to Cart button if setting enabled
-      if (setting?.is_add_to_cart_quotes == "1") {
-        btn.style.display = "none";
+  // Hide original Add to Cart only when quote is actionable (sold-out quote keeps ATC visible)
+  if (setting?.is_add_to_cart_quotes == "1" && inventoryAvailable) {
+    let parent = container.parentElement;
+    while (parent && parent !== document.body) {
+      const form = parent.querySelector('form[action="/cart/add"]');
+      if (form) {
+        const btn =
+          form.querySelector('button[type="submit"]') ||
+          form.querySelector(".product-form__submit");
+        if (btn) {
+          btn.style.display = "none";
+          break;
+        }
       }
+      parent = parent.parentElement;
     }
-  });
+  }
 
-  // Add click event to Quote button
-  const quoteBtn = document.querySelector(".uc-add-to-quotes-btn");
+  if (!inventoryAvailable || !quoteBtn) {
+    return;
+  }
 
-  quoteBtn?.addEventListener("click", function () {
-    if (detectedAddToCartBtn) {
-      detectedAddToCartBtn.click();
-    } else {
-      console.warn("Add to Cart button not found");
+  quoteBtn.addEventListener("click", async function () {
+    quoteBtn.disabled = true;
+    quoteBtn.classList.add("uc-button-loading", "button-loading-spinner");
+
+    try {
+      let variantId = ucResolveVariantIdForContainer(container);
+      let quantity = 1;
+
+      let parent = container.parentElement;
+      while (parent && parent !== document.body) {
+        const form = parent.querySelector('form[action="/cart/add"]');
+        if (form) {
+          const variantInput = form.querySelector('input[name="id"], select[name="id"]');
+          const quantityInput = form.querySelector('input[name="quantity"]');
+          if (!variantId && variantInput?.value) {
+            variantId = variantInput.value.trim();
+          }
+          quantity = parseInt(quantityInput?.value || "1", 10);
+          break;
+        }
+        parent = parent.parentElement;
+      }
+
+      if (!variantId && productId) {
+        const handle = container.getAttribute("data-product-handle")?.trim();
+        if (handle) {
+          const data = await fetchProductDataByHandle(handle);
+          variantId =
+            data?.variants?.find((v) => v.available)?.id?.toString() ||
+            data?.variants?.[0]?.id?.toString() ||
+            container.getAttribute("data-default-variant-id")?.trim() ||
+            null;
+        }
+      }
+
+      if (!variantId) {
+        console.warn("❌ Variant ID not found for product:", productId);
+        quoteBtn.classList.remove("uc-button-loading", "button-loading-spinner");
+        quoteBtn.disabled = quoteBtn.classList.contains("uc-add-to-quotes-btn--sold-out");
+        return;
+      }
+
+      console.log("✅ Adding to cart — variantId:", variantId, "qty:", quantity);
+
+      const cartResponse = await fetch("/cart/add.js", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          items: [
+            {
+              id: parseInt(variantId, 10),
+              quantity: quantity,
+              properties: {
+                _is_quote: "true",
+                _quote_type: "request_quote",
+              },
+            },
+          ],
+        }),
+      });
+      
+      const cartData = await cartResponse.json();
+      
+      if (cartData.status === 422) {
+        console.error("Cart error:", cartData.description);
+        return;
+      }
+
+      await handleAddToQuoteRedirect(setting, cartData);
+    } catch (error) {
+      console.error("Add to quote cart failed:", error);
+    } finally {
+      quoteBtn.classList.remove("uc-button-loading", "button-loading-spinner");
+      quoteBtn.disabled = quoteBtn.classList.contains("uc-add-to-quotes-btn--sold-out");
     }
   });
 };
 
 const ucAddToCartGetQuotesDetails = async () => {
-  const response = await displayQuoteButton([{ product_id: __st.rid }], 0, "product");
-  if (response.isDisplayQuoteButton) {
-    ucRenderAddToQuotesButton({ ...response.settings, is_add_to_cart_quotes: response.quoteSetting.is_add_to_cart_quotes },);
+  const allQuoteContainers = document.querySelectorAll(".uc-add-to-quotes");
+
+  if (!allQuoteContainers.length) return;
+
+  const cartProduct = [];
+  for (const container of allQuoteContainers) {
+    const productId = container.getAttribute("data-product-id");
+    if (productId) {
+      cartProduct.push({ product_id: productId });
+    }
+  }
+  if (!cartProduct.length) return;
+
+  try {
+    const response = await displayQuoteButton(cartProduct, 0, "product");
+    const byProduct = response.isDisplayQuoteButtonByProduct || {};
+
+    const uniqueHandles = [
+      ...new Set(
+        Array.from(allQuoteContainers)
+          .map((c) => c.getAttribute("data-product-handle")?.trim())
+          .filter(Boolean)
+      ),
+    ];
+    await Promise.all(uniqueHandles.map((h) => fetchProductDataByHandle(h)));
+
+    const settingBase = {
+      ...response.settings,
+      is_add_to_cart_quotes: response.quoteSetting?.is_add_to_cart_quotes,
+    };
+
+    ucQuoteProductSettingsCache = {
+      settingBase,
+      byProduct,
+      showQuote: response.isDisplayQuoteButton,
+    };
+
+    for (const container of allQuoteContainers) {
+      ucEnsureDefaultVariantId(container);
+    }
+
+    for (const container of allQuoteContainers) {
+      const productId = container.getAttribute("data-product-id");
+      if (!productId) continue;
+      const showForProduct = byProduct[productId] ?? response.isDisplayQuoteButton;
+      if (!showForProduct) {
+        container.innerHTML = "";
+        continue;
+      }
+      await ucRefreshQuoteButtonForContainer(container);
+    }
+  } catch (err) {
+    console.error("Quote button error (batched product check):", err);
   }
 };
+
+const ucBindVariantChangeListeners = () => {
+  const productForms = document.querySelectorAll('form[action="/cart/add"]');
+  if (!productForms.length) return;
+
+  productForms.forEach((form) => {
+    const onVariantChange = () => {
+      let container =
+        form.closest(".product")?.querySelector(".uc-add-to-quotes") ||
+        form.parentElement?.querySelector(".uc-add-to-quotes") ||
+        form.closest("section")?.querySelector(".uc-add-to-quotes");
+
+      if (!container) return;
+
+      const variantInput = form.querySelector('input[name="id"], select[name="id"]');
+      const newVariantId = variantInput?.value?.trim() || null;
+      if (newVariantId) {
+        container.setAttribute("data-variant-id", newVariantId);
+      }
+
+      ucScheduleQuoteButtonsRefresh();
+    };
+
+    form.addEventListener("change", (event) => {
+      const target = event.target;
+      if (
+        !target ||
+        !(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)
+      ) {
+        return;
+      }
+
+      const name = target.name || "";
+      if (
+        name === "id" ||
+        name.startsWith("options[") ||
+        name === "option-0" ||
+        name === "option-1" ||
+        name === "option-2"
+      ) {
+        onVariantChange();
+      }
+    });
+  });
+};
+
+const ucBindUrlVariantChangeListeners = () => {
+  window.addEventListener("popstate", ucScheduleQuoteButtonsRefresh);
+
+  const wrapHistoryMethod = (method) => {
+    const original = history[method];
+    if (typeof original !== "function") return;
+    history[method] = function (...args) {
+      const result = original.apply(this, args);
+      ucScheduleQuoteButtonsRefresh();
+      return result;
+    };
+  };
+
+  wrapHistoryMethod("pushState");
+  wrapHistoryMethod("replaceState");
+
+  document.addEventListener("variant:change", (event) => {
+    const detail = event?.detail;
+    const variantId =
+      detail?.variant?.id?.toString() ||
+      detail?.id?.toString() ||
+      ucGetUrlVariantId();
+
+    if (!variantId) {
+      ucScheduleQuoteButtonsRefresh();
+      return;
+    }
+
+    document.querySelectorAll(".uc-add-to-quotes").forEach((container) => {
+      container.setAttribute("data-variant-id", variantId);
+    });
+    ucScheduleQuoteButtonsRefresh();
+  });
+};
+
 // Wait for the DOM to be fully loaded before executing any code
 document.addEventListener("DOMContentLoaded", function () {
-  if (ucPage === "product") {
-    if (document.querySelectorAll(".uc-add-to-quotes").length) {
-      ucAddToCartGetQuotesDetails();
-    }
+  if (document.querySelectorAll(".uc-add-to-quotes").length) {
+    ucAddToCartGetQuotesDetails();
+    ucBindVariantChangeListeners();
+    ucBindUrlVariantChangeListeners();
   }
   window.qcCallQuotesDetails();
 });

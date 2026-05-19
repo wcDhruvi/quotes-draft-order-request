@@ -52,6 +52,7 @@ const initialState = {
     add_to_cart_btn_text_hover_color: '',
     add_to_cart_btn_border_hover_color: '',
     add_to_cart_btn_font: '',
+    add_to_cart_redirect: '3',
     is_redirect: '',
     redirect_page: '',
 };
@@ -132,6 +133,7 @@ const ButtonDesign = () => {
             add_to_cart_btn_text_hover_color: setting.add_to_cart_btn_text_hover_color,
             add_to_cart_btn_border_hover_color: setting.add_to_cart_btn_border_hover_color,
             add_to_cart_btn_font: setting.add_to_cart_btn_font,
+            add_to_cart_redirect: setting.add_to_cart_redirect,
             is_redirect: setting.is_redirect,
             redirect_page: setting.redirect_page,
             id: setting.id,
@@ -481,9 +483,24 @@ const ButtonDesign = () => {
 
                                         </FormLayout.Group>
 
-                                        <FormLayout.Group condensed>
+                                        <Divider />
 
-                                        </FormLayout.Group>
+                                        <BlockStack gap={"200"}>
+                                            <Text as="h2" variant="headingSm">AFTER ADD TO QUOTE</Text>
+                                            <Text variant="bodyMd" color="subdued" as="p">
+                                                Choose where the customer goes after clicking Add to Quote on the product page.
+                                            </Text>
+                                            <Select
+                                                label="Redirect after add to quote"
+                                                value={setting.add_to_cart_redirect || "3"}
+                                                options={[
+                                                    { label: "Checkout page", value: "1" },
+                                                    { label: "Callback", value: "2" },
+                                                    { label: "Cart page", value: "3" },
+                                                ]}
+                                                onChange={(value) => onChange("add_to_cart_redirect", value)}
+                                            />
+                                        </BlockStack>
                                     </FormLayout>
                                 </Card>
                             </Layout.Section>

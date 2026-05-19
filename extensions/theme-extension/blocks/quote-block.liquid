@@ -1,9 +1,13 @@
-<div class="uc-add-to-quotes"></div>
+<div
+  class="uc-add-to-quotes"
+  data-product-id="{{ product.id }}"
+  data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+  data-product-handle="{{ product.handle }}"
+></div>
 
 {% schema %}
 {
   "name": "Uncap Quotes",
-  "templates": ["product"],
   "target": "section"
 }
 {% endschema %} 

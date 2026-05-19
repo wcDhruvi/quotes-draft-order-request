@@ -114,6 +114,14 @@ export const schema: GadgetModel = {
       filterIndex: false,
       searchIndex: false,
     },
+    add_to_cart_redirect: {
+      type: "enum",
+      default: "3",
+      acceptMultipleSelections: false,
+      acceptUnlistedOptions: false,
+      options: ["1", "2", "3"],
+      storageKey: "kmSR0PtUgKbo",
+    },
     is_add_custom_item: {
       type: "boolean",
       default: true,
@@ -292,5 +300,4 @@ export const schema: GadgetModel = {
       searchIndex: false,
     },
   },
-  searchIndex: false,
 };

@@ -8,8 +8,7 @@ const Installation = () => {
   //const shopDetails = useSelector((state) => state.shopDetails);
   const [message, setMessage] = useState('');
   const [activeMessage, setActiveMessage] = useState(false);
-  const [selected, setSelected] = useState(0);
-  const [open, setOpen] = useState(false);
+  const [copiedSnippetId, setCopiedSnippetId] = useState(null);
   const { shop } = useContext(ShopContext);
   const [{ data: activeTheme }, refresh] = useFindFirst(api.shopifyTheme, {
     filter: { role: { equals: "main" } },
@@ -21,7 +20,13 @@ const Installation = () => {
 
   let storeUrl = `https://${shop.myshopifyDomain}/admin/themes`;
   let imageUrl = '/images/';
-  console.log(product);
+
+  const productQuoteSnippet = `<div
+  class="uc-add-to-quotes"
+  data-product-id="{{ product.id }}"
+  data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+  data-product-handle="{{ product.handle }}"
+></div>`;
 
 
   const tabs = [
@@ -50,7 +55,9 @@ const Installation = () => {
       title: "Add \"Request a Quote\" block on the product page",
       description: "Click the button below to add a \"Request a Quote\" block to the product page.",
       button: "Add Block on Product Page",
-      imgUrl: `${imageUrl}product_image.png`
+      imgUrl: `${imageUrl}product_image.png`,
+      shortCode: productQuoteSnippet,
+      shortCodeDescription: '<b>Add this shortcode</b> to display the "Request a Quote" block anywhere on your store pages.'
     },
     {
       id: 3,
@@ -90,6 +97,26 @@ const Installation = () => {
   };
 
 
+  const onCopySnippet = async (stepId, snippetText) => {
+    try {
+      await navigator.clipboard.writeText(snippetText);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = snippetText;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "absolute";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+
+    setCopiedSnippetId(stepId);
+    setMessage("Snippet copied to clipboard");
+    setActiveMessage(true);
+    setTimeout(() => setCopiedSnippetId(null), 2000);
+  };
 
   const toggleActive = () => {
     setActiveMessage((activeMessage) => !activeMessage);
@@ -202,7 +229,7 @@ const Installation = () => {
             {
               (settingUpCodeArray || []).map((x, index) => {
                 return (
-                  <Fragment>
+                  <Fragment key={x.id}>
                     <Box padding={"400"}>
                       <Grid>
                         <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
@@ -213,6 +240,38 @@ const Installation = () => {
                               style={{ color: 'var(--p-color-text)', fontSize: 'var(--p-font-size-200)' }}
                             />
                             <span><Button onClick={() => handleNavigate(x?.id)} variant={"primary"}>{x.button}</Button></span>
+                            {x.shortCode && (
+                              <>
+                                <div
+                                  dangerouslySetInnerHTML={{ __html: x.shortCodeDescription }}
+                                  style={{ color: 'var(--p-color-text)', fontSize: 'var(--p-font-size-200)' }}
+                                />
+                                <BlockStack gap={"200"}>
+                                  <div className="copy-code" id={`copy-snippet-${x.id}`}>
+                                    <textarea
+                                      readOnly
+                                      className="cc-input-text cc-snippet-textarea"
+                                      rows={5}
+                                      value={x.shortCode}
+                                      aria-label="Product page add to quote snippet"
+                                    />
+                                    <button
+                                      type="button"
+                                      className={`cc-copy${copiedSnippetId === x.id ? " copied" : ""}`}
+                                      onClick={() => onCopySnippet(x.id, x.shortCode)}
+                                      aria-label="Copy snippet"
+                                    >
+                                      <svg viewBox="0 0 20 20" className="cc-copy-icon" aria-hidden="true">
+                                        <path fillRule="nonzero" d="M2.75 18.25H14a.75.75 0 1 1 0 1.5H2a.75.75 0 0 1-.75-.75V5a.75.75 0 0 1 1.5 0v13.25zM6 .25h12a.75.75 0 0 1 .75.75v14a.75.75 0 0 1-.75.75H6a.75.75 0 0 1-.75-.75V1A.75.75 0 0 1 6 .25zm.75 1.5v12.5h10.5V1.75H6.75z" />
+                                      </svg>
+                                      <svg className="cc-true-icon" viewBox="0 0 20 20" aria-hidden="true" >
+                                        <path fillRule="nonzero" d="M15.948 5.47a.75.75 0 1 1 1.06 1.06l-8.485 8.486a.75.75 0 0 1-1.06 0L3.22 10.773a.75.75 0 0 1 1.06-1.06l3.713 3.712 7.955-7.955z" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </BlockStack>
+                              </>
+                            )}
                           </BlockStack>
                         </Grid.Cell>
                         <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
@@ -225,7 +284,7 @@ const Installation = () => {
                       </Grid>
                     </Box>
                     {
-                      x.length == index + 1 ? "" : <Divider />
+                      settingUpCodeArray.length === index + 1 ? "" : <Divider />
                     }
                   </Fragment>
                 );
