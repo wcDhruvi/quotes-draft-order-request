@@ -7,6 +7,10 @@ export const schema: GadgetModel = {
   type: "gadget/model-schema/v2",
   storageKey: "G-IX6Vrt-yae",
   fields: {
+    addtocart_classname: {
+      type: "string",
+      storageKey: "tc1PSAuHw6CT",
+    },
     collection_ids: {
       type: "json",
       default: [],
@@ -191,5 +195,4 @@ export const schema: GadgetModel = {
       searchIndex: false,
     },
   },
-  searchIndex: false,
 };

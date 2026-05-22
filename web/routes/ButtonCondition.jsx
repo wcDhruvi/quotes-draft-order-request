@@ -54,6 +54,7 @@ const ButtonCondition = () => {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [value, setValue] = useState("");
   const [draftOrderValue, setDraftOrderValue] = useState("");
+  const [addtocartClassname, setAddtocartClassname] = useState("");
   let navigate = useNavigate();
   const { appBridge } = useGadget();
   const [{ data: quoteSetting }, refresh] = useFindFirst(api.quoteSetting);
@@ -217,6 +218,7 @@ const ButtonCondition = () => {
     console.log(clone);
     setQuoteCondition(clone.sort((a, b) => a.type > b.type ? 1 : -1));
     setIsAddToCartQuotes(response.is_add_to_cart_quotes);
+    setAddtocartClassname(response.addtocart_classname || "");
   };
 
 
@@ -415,6 +417,7 @@ const ButtonCondition = () => {
       min: payload.min,
       max: payload.max,
       is_add_to_cart_quotes: isAddToCartQuotes,
+      addtocart_classname: addtocartClassname,
       draft_order_tags: draftOrderTags,
       id: ids,
     });
@@ -783,6 +786,15 @@ const ButtonCondition = () => {
                   label="Show Request a quote instead of Add to cart button"
                   checked={isAddToCartQuotes === "1"}
                   onChange={(checked) => setIsAddToCartQuotes(checked ? "1" : "0")} />
+                {isAddToCartQuotes === "1" && (
+                  <TextField
+                    label="Add to cart classname"
+                    value={addtocartClassname}
+                    onChange={(value) => setAddtocartClassname(value)}
+                    autoComplete="off"
+                    helpText="Enter the classname to hide the Add to cart button when the quote button is outside the form."
+                  />
+                )}
                 {
                   quoteCondition.length === 5 ? "" :
                     <span><Button primary onClick={onAddNewRule}>Add New Rule</Button></span>

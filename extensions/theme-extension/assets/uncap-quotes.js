@@ -771,234 +771,6 @@ const qcGetQuotesDetails = async () => {
   }
 };
 
-// const ucRenderAddToQuotesButton = (setting) => {
-//   ucAddToQuotesCssEvent(setting);
-
-//   let ucAddToQuotesBtn = `
-//     <button class="uc-add-to-quotes-btn" type="button">
-//       ${setting?.add_to_cart_btn_text || "Add to Quote"}
-//     </button>
-//   `;
-
-//   const quoteContainer = document.querySelector(".uc-add-to-quotes");
-//   if (!quoteContainer) return;
-
-//   // Inject Quote Button
-//   quoteContainer.innerHTML = ucAddToQuotesBtn;
-
-//   let detectedAddToCartBtn = null;
-
-//   // Find actual Add to Cart button inside cart forms
-//   document.querySelectorAll('form[action="/cart/add"]').forEach((form) => {
-//     let btn = form.querySelector('button[type="submit"]') || form.querySelector(".product-form__submit");
-
-//     if (btn) {
-//       detectedAddToCartBtn = btn;
-
-//       // Hide original Add to Cart button if setting enabled
-//       if (setting?.is_add_to_cart_quotes == "1") {
-//         btn.style.display = "none";
-//       }
-//     }
-//   });
-
-//   // Add click event to Quote button
-//   const quoteBtn = document.querySelector(".uc-add-to-quotes-btn");
-
-//   quoteBtn?.addEventListener("click", function () {
-//     if (detectedAddToCartBtn) {
-//       detectedAddToCartBtn.click();
-//     } else {
-//       console.warn("Add to Cart button not found");
-//     }
-//   });
-
-//   // quoteBtn?.addEventListener("click", async function () {
-//   //   try {
-//   //     // Get current variant ID
-//   //     const variantInput = document.querySelector(
-//   //       'form[action="/cart/add"] input[name="id"]'
-//   //     );
-
-//   //     const quantityInput = document.querySelector('form[action="/cart/add"] input[name="quantity"]');
-//   //     const quantity = parseInt(quantityInput?.value || "1", 10);
-
-//   //     if (!variantInput?.value) {
-//   //       console.warn("Variant ID not found");
-//   //       return;
-//   //     }
-
-//   //     const variantId = variantInput.value;
-
-//   //     // Add to cart using Shopify AJAX API
-//   //     const response = await fetch("/cart/add.js", {
-//   //       method: "POST",
-//   //       headers: {
-//   //         "Content-Type": "application/json",
-//   //         Accept: "application/json",
-//   //       },
-//   //       body: JSON.stringify({
-//   //         items: [
-//   //           {
-//   //             id: variantId,
-//   //             quantity: quantity,
-//   //             properties: {
-//   //               "_is_quote": "true",
-//   //               "_quote_type": "request_quote",
-//   //             },
-//   //           },
-//   //         ],
-//   //       }),
-//   //     });
-
-//   //     const data = await response.json();
-
-//   //     console.log("Added to cart:", data);
-
-//   //     // Get updated cart sections (THIS is what theme expects)
-//   //     // IMPORTANT: include cart-items section
-//   //     const sections = await fetch(
-//   //       "/?sections=cart-items,cart-icon-bubble,cart-drawer"
-//   //     ).then(res => res.json());
-
-//   //     console.log("Sections:", sections);
-//   //     // Safe dispatch
-//   //     // document.dispatchEvent(
-//   //     //   new CustomEvent("cart:update", {
-//   //     //     bubbles: true,
-//   //     //     detail: {
-//   //     //       sections: sections || {}
-//   //     //     }
-//   //     //   })
-//   //     // );
-
-//   //   } catch (error) {
-//   //     console.error("Add to cart failed", error);
-//   //   }
-//   // });
-// };
-
-// const updateCartUI = async () => {
-//   try {
-//     const cartState = await fetch("/cart.js").then(r => r.json());
-//     const itemCount = cartState.item_count;
-
-//     // ============================================================
-//     // MOST UNIVERSAL: Direct DOM scan — no section fetching needed
-//     // Find cart count element by scanning visible number in DOM
-//     // ============================================================
-//     let updated = false;
-
-//     // Known cart count selectors across ALL major themes
-//     const countSelectors = [
-//       // Your theme
-//       "#cart-bubble-text",
-//       ".cart-bubble__text-count",
-//       // Dawn / Sense / Refresh
-//       ".cart-count-bubble span:not(.visually-hidden)",
-//       // Debut / Simple / Brooklyn
-//       "#CartCount",
-//       ".cart__count",
-//       // Impulse / Turbo
-//       ".cart-link__bubble-num",
-//       // Broadcast
-//       ".header__cart-count",
-//       // Prestige
-//       ".Cart__ItemCount",
-//       // Minimal / Supply
-//       "#cart-item-count",
-//       ".cart-item-count",
-//       // Pipeline
-//       ".cart_count",
-//       // Venue / Symmetry
-//       ".cart-quantity",
-//       ".cart-link .count",
-//       // Generic
-//       "[data-cart-count]",
-//       "[data-cart-item-count]",
-//       // Your theme specific
-//       ".cart-bubble__text-count",
-//       "cart-icon-bubble",
-//     ];
-
-//     countSelectors.forEach(selector => {
-//       try {
-//         document.querySelectorAll(selector).forEach(el => {
-//           el.textContent = itemCount;
-//           el.classList.remove("visually-hidden", "hidden", "is-hidden", "hide");
-//           el.removeAttribute("hidden");
-//           updated = true;
-//           console.log("✅ Updated via selector:", selector, "→", itemCount);
-//         });
-//       } catch (e) {}
-//     });
-
-//     // ============================================================
-//     // FALLBACK: Scan entire DOM for cart-related numeric elements
-//     // ============================================================
-//     if (!updated) {
-//       const cartKeywords = ["cart", "Cart", "basket", "Basket", "bag", "Bag", "bubble", "Bubble"];
-
-//       document.querySelectorAll("*").forEach(el => {
-//         if (el.children.length > 0) return;
-
-//         const id = el.id || "";
-//         const cls = typeof el.className === "string" ? el.className : "";
-
-//         const isCartEl = cartKeywords.some(k => id.includes(k) || cls.includes(k));
-//         if (!isCartEl) return;
-
-//         const text = el.textContent.trim();
-//         if (/^\d+$/.test(text) || text === "") {
-//           el.textContent = itemCount;
-//           el.classList.remove("visually-hidden", "hidden", "is-hidden", "hide");
-//           el.removeAttribute("hidden");
-//           updated = true;
-//           console.log("✅ Updated via DOM scan:", el.tagName, id, cls, "→", itemCount);
-//         }
-//       });
-//     }
-
-//     // ============================================================
-//     // LAST RESORT: Re-render only the header_section specifically
-//     // Use the exact section ID from YOUR theme
-//     // ============================================================
-//     if (!updated) {
-//       try {
-//         // Fetch only the header section — not all sections
-//         const headerSectionEl = document.querySelector(
-//           "[id*='header_section'], [id*='header-section']"
-//         );
-
-//         if (headerSectionEl) {
-//           const sectionId = headerSectionEl.id.replace("shopify-section-", "");
-//           const res = await fetch(`/?sections=${sectionId}`);
-//           const data = await res.json();
-
-//           if (data[sectionId]) {
-//             const parser = new DOMParser();
-//             const newDoc = parser.parseFromString(data[sectionId], "text/html");
-//             const newSection = newDoc.querySelector(`#shopify-section-${sectionId}`);
-
-//             if (newSection) {
-//               headerSectionEl.innerHTML = newSection.innerHTML;
-//               updated = true;
-//               console.log("✅ Header section re-rendered");
-//             }
-//           }
-//         }
-//       } catch (e) {
-//         console.warn("Header section fetch failed:", e);
-//       }
-//     }
-
-//     console.log(`✅ Cart UI update complete — count: ${itemCount}, updated: ${updated}`);
-//     return cartState;
-
-//   } catch (err) {
-//     console.error("❌ Cart UI update failed:", err);
-//   }
-// };
 
 const ucRenderAddToQuotesButtonForContainer = (container, setting, options = {}) => {
   const { inventoryAvailable = true } = options;
@@ -1006,8 +778,6 @@ const ucRenderAddToQuotesButtonForContainer = (container, setting, options = {})
 
   const productId = container.getAttribute("data-product-id");
   const variantId = container.getAttribute("data-variant-id")?.trim() || null;
-
-  console.log("variant id render", variantId)
 
   const soldOutClass = inventoryAvailable ? "" : " uc-add-to-quotes-btn--sold-out";
   const disabledAttrs = inventoryAvailable
@@ -1028,6 +798,16 @@ const ucRenderAddToQuotesButtonForContainer = (container, setting, options = {})
 
   // Hide original Add to Cart only when quote is actionable (sold-out quote keeps ATC visible)
   if (setting?.is_add_to_cart_quotes == "1" && inventoryAvailable) {
+    if (setting?.addtocart_classname) {
+      const classesToHide = setting.addtocart_classname.split(',').map(c => c.trim()).filter(c => c);
+      classesToHide.forEach(className => {
+        const selector = className.startsWith('.') ? className : `.${className}`;
+        document.querySelectorAll(selector).forEach(el => {
+          el.style.display = "none";
+        });
+      });
+    }
+
     let parent = container.parentElement;
     while (parent && parent !== document.body) {
       const form = parent.querySelector('form[action="/cart/add"]');
@@ -1090,8 +870,6 @@ const ucRenderAddToQuotesButtonForContainer = (container, setting, options = {})
         return;
       }
 
-      console.log("✅ Adding to cart — variantId:", variantId, "qty:", quantity);
-
       const cartResponse = await fetch("/cart/add.js", {
         method: "POST",
         headers: {
@@ -1111,9 +889,9 @@ const ucRenderAddToQuotesButtonForContainer = (container, setting, options = {})
           ],
         }),
       });
-      
+
       const cartData = await cartResponse.json();
-      
+
       if (cartData.status === 422) {
         console.error("Cart error:", cartData.description);
         return;
@@ -1231,6 +1009,42 @@ const ucBindVariantChangeListeners = () => {
   });
 };
 
+window.ucShowAddToQuoteBtn = (function () {
+  let observer = null;
+  let debounceTimer = null;
+  let isRefreshing = false;
+  const refreshData = () => {
+    if (isRefreshing) return; // prevent re-entry
+    isRefreshing = true;
+    ucAddToCartGetQuotesDetails();
+    ucBindVariantChangeListeners();
+    ucBindUrlVariantChangeListeners();
+
+    setTimeout(() => {
+      isRefreshing = false;
+    }, 1000);
+  };
+  const debouncedRefresh = () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      refreshData();
+    }, 300);
+  };
+  return function (badgeFlg = false) {
+    if (badgeFlg) {
+      refreshData();
+    } else {
+      refreshData();
+      if (!observer) {
+        observer = new MutationObserver(() => {
+          debouncedRefresh();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+    }
+  };
+})();
+
 const ucBindUrlVariantChangeListeners = () => {
   window.addEventListener("popstate", ucScheduleQuoteButtonsRefresh);
 
@@ -1269,12 +1083,13 @@ const ucBindUrlVariantChangeListeners = () => {
 // Wait for the DOM to be fully loaded before executing any code
 document.addEventListener("DOMContentLoaded", function () {
   if (document.querySelectorAll(".uc-add-to-quotes").length) {
-    ucAddToCartGetQuotesDetails();
-    ucBindVariantChangeListeners();
-    ucBindUrlVariantChangeListeners();
+    if (typeof window.ucShowAddToQuoteBtn === "function") {
+      window.ucShowAddToQuoteBtn();
+    }
   }
   window.qcCallQuotesDetails();
 });
+
 window.qcCallQuotesDetails = function () {
   if (document.querySelectorAll(".uc-request-quotes").length) {
     qcGetQuotesDetails();
