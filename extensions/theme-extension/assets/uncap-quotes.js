@@ -748,13 +748,31 @@ const ucRenderQuotesButton = async (customFields, setting) => {
   });
 };
 
+let ucApiCache = {};
+
 const displayQuoteButton = async (cartProduct, cartTotalPrice, type) => {
-  const getQuote = await api.customApi(
+  const cacheKey = JSON.stringify({ cartProduct, cartTotalPrice, type, shopId: window.shopId, ucCustomerId });
+  
+  if (ucApiCache[cacheKey]) {
+      const getQuote = await ucApiCache[cacheKey];
+      return { ...getQuote.data };
+  }
+
+  const promise = api.customApi(
     {
       payload: { shopId: window.shopId, cartProduct, ucCustomerId, type, cartTotalPrice },
     }
   );
-  return { ...getQuote.data };
+  
+  ucApiCache[cacheKey] = promise;
+
+  try {
+      const getQuote = await promise;
+      return { ...getQuote.data };
+  } catch (err) {
+      delete ucApiCache[cacheKey];
+      throw err;
+  }
 };
 
 const qcGetQuotesDetails = async () => {
@@ -778,6 +796,19 @@ const ucRenderAddToQuotesButtonForContainer = (container, setting, options = {})
 
   const productId = container.getAttribute("data-product-id");
   const variantId = container.getAttribute("data-variant-id")?.trim() || null;
+
+  const currentVariantId = variantId || "";
+  const renderedVariantId = container.getAttribute("data-rendered-variant-id") || "";
+  const renderedAvailable = container.getAttribute("data-rendered-available") || "";
+  const currentAvailable = inventoryAvailable.toString();
+
+  if (renderedVariantId === currentVariantId && renderedAvailable === currentAvailable && container.classList.contains("uc-quotes-rendered")) {
+      return; // Already rendered for this state
+  }
+
+  container.setAttribute("data-rendered-variant-id", currentVariantId);
+  container.setAttribute("data-rendered-available", currentAvailable);
+  container.classList.add("uc-quotes-rendered");
 
   const soldOutClass = inventoryAvailable ? "" : " uc-add-to-quotes-btn--sold-out";
   const disabledAttrs = inventoryAvailable
